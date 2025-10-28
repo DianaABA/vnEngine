@@ -27,8 +27,11 @@
   "publishConfig": { "access": "public" },
   "peerDependencies": {
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "@vn/core": ">=1.0.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@vn/core": "^1.0.0"
+  }
 }
