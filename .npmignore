@@ -1,0 +1,6 @@
+examples/
+tests/
+apps/
+*.spec.ts
+*.test.ts
+.vscode/

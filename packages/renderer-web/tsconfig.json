@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
+    "composite": true,
+  "types": ["vitest/globals", "vite/client"],
+  "moduleResolution": "bundler",
     "target": "ES2021",
     "module": "ESNext",
     "lib": ["DOM", "ES2021"],
     "jsx": "react",
-    "moduleResolution": "Node",
+  // ...existing code...
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -18,6 +21,6 @@
       "@vn/core/*": ["../core/src/*"]
     }
   },
-  "include": ["*.ts", "*.tsx"],
+  "include": ["src", "*.ts", "*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,5 +1,5 @@
 import type { VNAssets } from './assets';
-import type { AudioPort, BgPort, SpritePort } from '@vn/core/src/ports';
+import type { AudioPort, BgPort, SpritePort } from '@vn/core';
 
 export function createBgPort(assets: VNAssets): BgPort {
   return {

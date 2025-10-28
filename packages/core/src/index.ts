@@ -1,18 +1,11 @@
-export * from './DialogueManager';
-export * from './ScenePlayer';
-export * from './VNEngine';
-export * from './types';
-export * from './parser';
-export {
-  VNEngine,
-  RenderInstruction,
-  VNNode,
-  DialogueNode,
-  ChoiceNode,
-  CommandNode,
-  EndNode,
-  NodeID
-} from './vnEngineNodeSystem';
-export * from './ports';
-export * from './snapshot';
-export { loadScript } from './scriptLoader';
+// Copilot prompt — core public API
+// Export VNEngine, types (VNNode union, Snapshot, RenderInstruction), and minimal helpers.
+// DO NOT import DOM. Keep platform-agnostic.
+export { VNEngine } from './vnEngineNodeSystem';
+export type { VNNode, DialogueNode, ChoiceNode, CommandNode, BranchNode, EndNode } from './vnEngineNodeSystem';
+export type { Snapshot } from './snapshot';
+export type { RenderInstruction } from './vnEngineNodeSystem';
+export type { DialogueLine } from './DialogueManager';
+export type { AudioPort, BgPort, SpritePort } from './ports';
+export type { CommandName, CommandArgs } from './commands/registry';
+// Minimal helpers (add as needed)

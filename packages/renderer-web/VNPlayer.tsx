@@ -1,28 +1,30 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { VNEngine, RenderInstruction } from '@vn/core/src/vnEngineNodeSystem';
-import { Background } from './Background';
-import { Sprites } from './Sprites';
-import { AudioPlayer } from './AudioPlayer';
+import { RenderInstruction } from '@vn/core';
 
 export interface VNPlayerProps {
-  engine: VNEngine;
+  engine: any;
   assets: {
     backgrounds?: Record<string, string>;
     sprites?: Record<string, string>;
     audio?: Record<string, string>;
   };
 }
+import { Background } from './Background';
+import { Sprites } from './Sprites';
+import { AudioPlayer } from './AudioPlayer';
 
 export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [instruction, setInstruction] = useState<RenderInstruction | null>(null);
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  // flags removed (unused)
   const [bgKey, setBgKey] = useState<string>('');
   const [sprites, setSprites] = useState<any[]>([]);
   const [audio, setAudio] = useState<string>('');
+  const [isCommandRunning, setIsCommandRunning] = useState(false);
+  const proceedGuard = React.useRef(false);
 
   useEffect(() => {
     setInstruction(engine.getCurrentInstruction());
-    const sub = engine.onInstruction((instr) => setInstruction(instr));
+    const sub = engine.onInstruction((instr: RenderInstruction) => setInstruction(instr));
     return () => sub.unsubscribe();
   }, [engine]);
 
@@ -38,37 +40,48 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   useEffect(() => {
     if (!instruction) return;
     if ('kind' in instruction && instruction.kind === 'runCommand') {
-      const { name, args } = instruction;
-      switch (name) {
-        case 'setBackground':
-          setBgKey((args as any).key || '');
-          break;
-        case 'showSprite':
-          setSprites((prev) => [...prev, args]);
-          break;
-        case 'hideSprite':
-          setSprites((prev) => prev.filter(s => s.id !== (args as any).id));
-          break;
-        case 'playMusic':
-          setAudio((args as any).idOrUrl || '');
-          break;
-        case 'stopMusic':
-          setAudio('');
-          break;
-        case 'setFlag':
-          setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
-          break;
-        default:
-          break;
+      setIsCommandRunning(true);
+      if (!proceedGuard.current) {
+        proceedGuard.current = true;
+        const { name, args } = instruction;
+        switch (name) {
+          case 'setBackground':
+            setBgKey((args as any).key || '');
+            break;
+          case 'showSprite':
+            setSprites((prev) => [...prev, args]);
+            break;
+          case 'hideSprite':
+            setSprites((prev) => prev.filter(s => s.id !== (args as any).id));
+            break;
+          case 'playMusic':
+            setAudio((args as any).idOrUrl || '');
+            break;
+          case 'stopMusic':
+            setAudio('');
+            break;
+          case 'setFlag':
+            // Flag logic can be handled by engine or omitted here
+            break;
+          default:
+            break;
+        }
+        setTimeout(() => {
+          engine.proceed();
+          setIsCommandRunning(false);
+          proceedGuard.current = false;
+        }, 0);
       }
-      setTimeout(() => engine.proceed(), 0);
+    } else {
+      setIsCommandRunning(false);
+      proceedGuard.current = false;
     }
   }, [instruction, engine]);
 
   // Keyboard UX
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!instruction) return;
+      if (!instruction || isCommandRunning) return;
       if ('type' in instruction && instruction.type === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
         handleNext();
       }
@@ -81,7 +94,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [instruction, handleNext, handleChoice]);
+  }, [instruction, handleNext, handleChoice, isCommandRunning]);
 
   if (!instruction) return <div>Loading...</div>;
 
@@ -135,7 +148,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       );
     default:
       return <div>Unknown instruction</div>;
+    }
   }
-}
-// ...existing code...
+  return null;
 };

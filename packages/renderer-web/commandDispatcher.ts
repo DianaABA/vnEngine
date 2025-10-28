@@ -3,9 +3,9 @@ export function shouldAllowNextKey(instr: any): boolean {
   // Only allow 'next' key if not in runCommand state
   return !(instr && instr.kind === 'runCommand');
 }
-import type { VNEngine } from '@vn/core/src/vnEngineNodeSystem';
-import type { CommandName, CommandArgs } from '@vn/core/src/commands/registry';
-import type { AudioPort, BgPort, SpritePort } from '@vn/core/src/ports';
+import type { VNEngine } from '@vn/core';
+import type { CommandName, CommandArgs } from '@vn/core';
+import type { AudioPort, BgPort, SpritePort } from '@vn/core';
 
 export interface CommandContext {
   engine: VNEngine;

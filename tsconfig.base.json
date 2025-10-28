@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
+    "types": ["vitest/globals"],
     "target": "ES2021",
     "module": "ESNext",
-    "lib": ["DOM", "ES2021"],
-    "moduleResolution": "Node",
+    "lib": ["ES2021", "DOM"],
+    "moduleResolution": "bundler",
     "declaration": true,
     "composite": true,
     "strict": true,

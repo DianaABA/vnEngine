@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+  "types": ["react-native"],
+    "jsx": "react-native",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationDir": "dist/types"
+  },
+  "include": ["*.ts", "*.tsx"],
+  "exclude": ["node_modules", "dist"],
+  "references": []
+}

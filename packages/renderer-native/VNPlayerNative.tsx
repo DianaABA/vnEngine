@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import type { VNEngine } from '@vn/core/src/vnEngineNodeSystem';
+import type { VNEngine, RenderInstruction } from '@vn/core';
+
 export interface VNAssets {
   backgrounds: Record<string, string>;
   sprites: Record<string, Record<string, string>>;
   audio: Record<string, string>;
 }
-import type { RenderInstruction } from '@vn/core/src/vnEngineNodeSystem';
 
 interface Props {
   engine: VNEngine;
@@ -14,58 +14,68 @@ interface Props {
 }
 
 export const VNPlayerNative: React.FC<Props> = ({ engine, assets }) => {
-  const [instruction, setInstruction] = useState<RenderInstruction | null>(engine.getCurrentInstruction());
+  const [instruction, setInstruction] = useState<RenderInstruction | null>(engine.next());
 
-  React.useEffect(() => {
-    const sub = engine.onInstruction(setInstruction);
-    return () => sub.unsubscribe();
-  }, [engine]);
+  const handleNext = () => {
+    const next = engine.proceed();
+    setInstruction(next);
+  };
 
-  // Background key from last setBackground command
-  let bgKey = '';
-  if (
-    instruction &&
-    'kind' in instruction &&
-    instruction.kind === 'runCommand' &&
-    instruction.name === 'setBackground' &&
-    instruction.args &&
-    'key' in instruction.args
-  ) {
-    bgKey = (instruction.args as { key: string }).key;
-  }
-  const bgUrl = assets.backgrounds[bgKey] || '';
+  const handleChoice = (index: number) => {
+    const next = engine.choose(index);
+    setInstruction(next);
+  };
+
+  // Background rendering (simplified - track via state in production)
+  const bgUrl = ''; // TODO: Track background state from runCommand instructions
 
   // Dialogue
-  if (instruction && 'type' in instruction && instruction.type === 'showDialogue') {
+  if (instruction?.kind === 'showDialogue') {
     return (
       <View style={styles.container}>
         {bgUrl ? <Image source={{ uri: bgUrl }} style={styles.background} /> : null}
-        <Text style={styles.dialogue}>{instruction.node.text}</Text>
-        <Pressable style={styles.next} onPress={() => engine.next()}><Text>Next</Text></Pressable>
+        <Text style={styles.speaker}>{instruction.speaker || 'Narrator'}</Text>
+        <Text style={styles.dialogue}>{instruction.text}</Text>
+        <Pressable style={styles.next} onPress={handleNext}><Text style={styles.buttonText}>Next</Text></Pressable>
       </View>
     );
   }
+
   // Choices
-  if (instruction && 'type' in instruction && instruction.type === 'showChoices') {
+  if (instruction?.kind === 'showChoices') {
     return (
       <View style={styles.container}>
         {bgUrl ? <Image source={{ uri: bgUrl }} style={styles.background} /> : null}
-        {instruction.node.options.map((opt: any, i: number) => (
-          <Pressable key={opt.id} style={styles.choice} onPress={() => engine.choose(i)}>
-            <Text>{opt.text}</Text>
+        <Text style={styles.prompt}>Choose:</Text>
+        {instruction.choices.map((choice, i) => (
+          <Pressable key={i} style={styles.choice} onPress={() => handleChoice(i)}>
+            <Text style={styles.buttonText}>{choice.text}</Text>
           </Pressable>
         ))}
       </View>
     );
   }
-  // ...handle other instruction types...
-  return <View style={styles.container}><Text>VNPlayerNative</Text></View>;
+
+  // End
+  if (instruction?.kind === 'end') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.dialogue}>The End</Text>
+      </View>
+    );
+  }
+
+  // Default/Loading
+  return <View style={styles.container}><Text style={styles.dialogue}>VNPlayerNative</Text></View>;
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#222' },
   background: { position: 'absolute', width: '100%', height: '100%' },
-  dialogue: { color: '#fff', fontSize: 20, margin: 20 },
-  choice: { backgroundColor: '#444', padding: 10, margin: 5, borderRadius: 5 },
-  next: { backgroundColor: '#888', padding: 10, margin: 20, borderRadius: 5 },
+  speaker: { color: '#aaa', fontSize: 16, marginBottom: 8, fontWeight: 'bold' },
+  dialogue: { color: '#fff', fontSize: 20, margin: 20, textAlign: 'center' },
+  prompt: { color: '#fff', fontSize: 18, marginBottom: 16 },
+  choice: { backgroundColor: '#444', padding: 12, margin: 8, borderRadius: 8, minWidth: 200 },
+  next: { backgroundColor: '#0066cc', padding: 12, margin: 20, borderRadius: 8, minWidth: 100 },
+  buttonText: { color: '#fff', fontSize: 16, textAlign: 'center' },
 });

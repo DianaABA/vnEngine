@@ -4,15 +4,17 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "examples/*",
+    "examples/web-demo"
   ],
   "scripts": {
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production",
+    "build": "pnpm -r --filter ./packages... run build",
     "dev": "turbo dev",
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc -b --pretty false",
-    "test": "vitest run",
+    "test": "pnpm -r --filter ./packages... run test",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -21,7 +23,6 @@
     "@babel/preset-react": "^7.28.5",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@types/react-native": "^0.72.8",
     "@vitejs/plugin-react": "^5.1.0",
     "babel-loader": "^10.0.0",
     "css-loader": "^7.1.2",
@@ -40,7 +41,6 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^2.2.0",
     "zod": "^4.1.12"
   }
 }
