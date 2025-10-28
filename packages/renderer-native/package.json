@@ -28,8 +28,11 @@
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-native": ">=0.73.0",
-    "expo-av": ">=14.0.0"
+    "expo-av": ">=14.0.0",
+    "@vn/core": ">=1.0.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@vn/core": "^1.0.0"
+  }
 }
