@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { VNEngine, RenderInstruction } from "@vn/core/src/vnEngineNodeSystem";
-import { LocalStorageAdapter } from "@vn/core/src/LocalStorageAdapter";
+import { VNEngine, type RenderInstruction } from "@vn/core";
+import { LocalStorageAdapter } from "@vn/storage";
 
 interface VNPlayerProps {
   engine: VNEngine;
@@ -15,29 +15,23 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
 
   const handleNext = () => {
     setInstruction(engine.next());
-  // no-op
   };
 
   const handleChoose = (index: number) => {
-  setInstruction(engine.choose(index));
+    setInstruction(engine.choose(index));
   };
 
   const handleSave = () => {
-    saveAdapter.save(saveSlot, {
-  scene: engine.snapshot.sceneId,
-  node: engine.snapshot.nodeId,
-    });
+    // Persist full engine snapshot
+    saveAdapter.save(saveSlot, engine.snapshot);
     alert("Game saved!");
   };
 
   const handleLoad = () => {
-    const data = saveAdapter.load(saveSlot);
-    if (data && data.scene && data.node) {
-      // Re-load script and jump to saved node
-  // Re-create engine with saved snapshot
-  const newEngine = new VNEngine(engine['script'], { sceneId: data.scene, nodeId: data.node });
-  setInstruction(newEngine.next());
-  // no-op
+    const snap = saveAdapter.load(saveSlot);
+    if (snap) {
+      engine.hydrate(snap as any);
+      setInstruction(engine.next());
       alert("Game loaded!");
     } else {
       alert("No save found.");
