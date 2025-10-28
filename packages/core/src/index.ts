@@ -8,4 +8,8 @@ export type { RenderInstruction } from './vnEngineNodeSystem';
 export type { DialogueLine } from './DialogueManager';
 export type { AudioPort, BgPort, SpritePort } from './ports';
 export type { CommandName, CommandArgs } from './commands/registry';
+// VN JSON types and helpers
+export type { VNEpisode, VNScene, VNLine, VNChoice } from './types';
+export { parseEpisode, loadEpisodeToSceneManager } from './parser';
+export { loadScript } from './scriptLoader';
 // Minimal helpers (add as needed)

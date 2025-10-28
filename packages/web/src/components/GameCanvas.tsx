@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import episode1 from '@assets/scripts/episode1.json';
-import { VNEngine } from '@vn/core/src/VNEngine';
-import { VNEpisode, VNScene, VNLine, VNChoice } from '@vn/core/src/types';
-import { parseEpisode, loadEpisodeToSceneManager } from '@vn/core/src/parser';
+import { VNEngine, type VNEpisode, type VNScene, type VNLine, type VNChoice, parseEpisode, loadEpisodeToSceneManager } from '@vn/core';
 import { motion, AnimatePresence } from 'framer-motion';
 const MotionImg = motion.img as React.FC<React.ImgHTMLAttributes<HTMLImageElement> & { animate?: any; initial?: any; exit?: any; transition?: any; }>;
 const MotionDiv = motion.div as React.FC<React.HTMLAttributes<HTMLDivElement> & { animate?: any; initial?: any; exit?: any; transition?: any; }>;

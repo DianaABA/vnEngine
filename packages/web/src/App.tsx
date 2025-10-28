@@ -1,8 +1,7 @@
 import React from "react";
-import { VNEngine } from "@vn/core/src/vnEngineNodeSystem";
+import { VNEngine, loadScript } from "@vn/core";
 import { VNPlayer } from "./components/VNPlayer";
 import sampleScript from "../../assets/scripts/episode1.json";
-import { loadScript } from "@vn/core/src/scriptLoader";
 
 
 // Convert sample JSON to GameScript format
