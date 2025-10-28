@@ -1,0 +1,46 @@
+{
+  "id": "episode1",
+  "title": "Awakening",
+  "description": "The protagonist wakes up in a mysterious place.",
+  "scenes": [
+    {
+      "id": "scene1",
+      "background": "bg_bedroom.jpg",
+      "lines": [
+        {
+          "id": "line1",
+          "speaker": "Protagonist",
+          "text": "Where am I...?"
+        },
+        {
+          "id": "line2",
+          "text": "The room feels unfamiliar.",
+          "background": "bg_mystery.jpg"
+        },
+        {
+          "id": "line3",
+          "speaker": "Voice",
+          "text": "Welcome. You must choose your path.",
+          "choices": [
+            { "id": "choice1", "text": "Look around", "nextSceneId": "scene2" },
+            { "id": "choice2", "text": "Call out", "nextSceneId": "scene3" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene2",
+      "background": "bg_bedroom.jpg",
+      "lines": [
+        { "id": "line1", "text": "You look around and see a door." }
+      ]
+    },
+    {
+      "id": "scene3",
+      "background": "bg_mystery.jpg",
+      "lines": [
+        { "id": "line1", "text": "You call out, but no one answers." }
+      ]
+    }
+  ]
+}

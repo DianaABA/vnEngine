@@ -1,0 +1,42 @@
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+
+# TypeScript
+*.tsbuildinfo
+
+# Yarn
+.yarn/
+
+# Turborepo
+.turbo/
+
+# Coverage
+coverage/
+
+# Misc
+*.swp
+*.swo
+
+# Ignore lock files if using npm workspaces
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

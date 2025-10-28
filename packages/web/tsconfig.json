@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+  // ...existing code...
+  "jsx": "react-jsx",
+  "resolveJsonModule": true,
+    "baseUrl": "src",
+    "paths": {
+      "@core/*": ["../../core/src/*"],
+      "@assets/*": ["../../assets/*"]
+    }
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../core" }
+  ]
+}
