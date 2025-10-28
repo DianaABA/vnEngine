@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-  "types": ["vitest/globals", "vite/client", "jest"],
+  "types": ["vitest/globals", "vite/client"],
   "moduleResolution": "bundler",
     "outDir": "dist",
   // ...existing code...
