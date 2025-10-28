@@ -1,9 +1,3 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/**/*"],
-  "files": [
-    "src/index.ts",
-    "src/DialogueManager.ts",
-    "src/ScenePlayer.ts"
-  ]
 }

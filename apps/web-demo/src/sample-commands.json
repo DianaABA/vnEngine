@@ -1,0 +1,19 @@
+{
+  "scenes": [
+    {
+      "id": "clinicNight",
+      "nodes": [
+        { "id": "n1", "type": "command", "name": "setBackground", "args": { "name": "setBackground", "key": "clinic_night" }, "next": "n2" },
+        { "id": "n2", "type": "command", "name": "playMusic", "args": { "name": "playMusic", "idOrUrl": "rain_loop", "loop": true }, "next": "n3" },
+        { "id": "n3", "type": "command", "name": "showSprite", "args": { "name": "showSprite", "id": "camilla", "pose": "neutral", "at": { "x": 60, "y": 80 } }, "next": "n4" },
+        { "id": "n4", "type": "dialogue", "speaker": "Camilla", "text": "It's raining tonight.", "next": "n5" },
+        { "id": "n5", "type": "command", "name": "setFlag", "args": { "name": "setFlag", "key": "metSage", "value": true }, "next": "n6" },
+        { "id": "n6", "type": "branch", "condition": "metSage", "trueNext": "n7", "falseNext": "n8" },
+        { "id": "n7", "type": "dialogue", "speaker": "Sage", "text": "You met me!", "next": "n9" },
+        { "id": "n8", "type": "dialogue", "speaker": "Camilla", "text": "Who's Sage?", "next": "n9" },
+        { "id": "n9", "type": "command", "name": "stopMusic", "args": { "name": "stopMusic" }, "next": "end" },
+        { "id": "end", "type": "end" }
+      ]
+    }
+  ]
+}

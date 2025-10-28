@@ -1,4 +1,4 @@
-import { Snapshot } from '@vn/core/src/snapshot';
+import { Snapshot } from '@vn/core';
 
 export interface SaveAdapter {
   save(slot: string, snap: Snapshot): Promise<void> | void;

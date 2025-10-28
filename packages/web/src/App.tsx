@@ -34,9 +34,9 @@ function convertToGameScript(json: any): any {
   };
 }
 
-const engine = new VNEngine();
+
 const gameScript = loadScript(convertToGameScript(sampleScript));
-engine.loadScript(gameScript, gameScript.scenes[0].id);
+const engine = new VNEngine(gameScript);
 
 function App() {
   return (

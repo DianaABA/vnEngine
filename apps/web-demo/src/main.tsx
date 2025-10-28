@@ -1,13 +1,13 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { VNEngine } from "@vn/core/src/vnEngineNodeSystem";
+import { VNEngine } from "@vn/core";
 import { VNPlayer } from "../../../packages/web/src/components/VNPlayer";
 import sampleScript from "./sample-script.json";
-import { loadScript } from "@vn/core/src/scriptLoader";
+import { loadScript } from "@vn/core";
 
-const engine = new VNEngine();
+
 const gameScript = loadScript(sampleScript);
-engine.loadScript(gameScript, gameScript.scenes[0].id);
+const engine = new VNEngine(gameScript);
 
 const App = () => (
   <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }}>

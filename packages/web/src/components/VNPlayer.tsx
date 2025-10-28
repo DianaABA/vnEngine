@@ -10,7 +10,7 @@ interface VNPlayerProps {
 const saveAdapter = new LocalStorageAdapter();
 
 export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }) => {
-  const [instruction, setInstruction] = useState<RenderInstruction | null>(engine.advance());
+  const [instruction, setInstruction] = useState<RenderInstruction | null>(engine.next());
   const [choiceIndex, setChoiceIndex] = useState<number | null>(null);
 
   const handleNext = () => {
@@ -25,8 +25,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
 
   const handleSave = () => {
     saveAdapter.save(saveSlot, {
-      scene: engine["currentScene"]?.id,
-      node: engine["currentNode"]?.id,
+  scene: engine.snapshot.sceneId,
+  node: engine.snapshot.nodeId,
     });
     alert("Game saved!");
   };
@@ -35,9 +35,9 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
     const data = saveAdapter.load(saveSlot);
     if (data && data.scene && data.node) {
       // Re-load script and jump to saved node
-      engine.loadScript(engine["script"]!, data.scene);
-      engine["currentNode"] = engine["findNodeById"](data.node);
-      setInstruction(engine.advance());
+  // Re-create engine with saved snapshot
+  const newEngine = new VNEngine(engine['script'], { sceneId: data.scene, nodeId: data.node });
+  setInstruction(newEngine.next());
       setChoiceIndex(null);
       alert("Game loaded!");
     } else {
@@ -47,51 +47,31 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
 
   if (!instruction) return <div>Game Over or Invalid Script</div>;
 
-  if ('type' in instruction) {
-    switch (instruction.type) {
-      case "showDialogue": {
-        const node = instruction.node as DialogueNode;
-        return (
-          <div>
-            <div><strong>{node.speaker || "Narrator"}</strong></div>
-            <div>{node.text}</div>
-            <button onClick={handleNext}>Next</button>
-            <button onClick={handleSave}>Save</button>
-            <button onClick={handleLoad}>Load</button>
-          </div>
-        );
-      }
-      case "showChoices": {
-        const node = instruction.node as ChoiceNode;
-        return (
-          <div>
-            <div>Choose:</div>
-            {node.options.map((opt, idx) => (
-              <button key={opt.id} onClick={() => handleChoose(idx)}>{opt.text}</button>
-            ))}
-            <button onClick={handleSave}>Save</button>
-            <button onClick={handleLoad}>Load</button>
-          </div>
-        );
-      }
-      case "showCommand": {
-        // For demo, just show command type
-        return (
-          <div>
-            <div>Command: {(instruction as any).node.command}</div>
-            <button onClick={handleNext}>Next</button>
-            <button onClick={handleSave}>Save</button>
-            <button onClick={handleLoad}>Load</button>
-          </div>
-        );
-      }
-      case "showEnd": {
-        return <div>End of Scene</div>;
-      }
-      default:
-        return <div>Unknown instruction</div>;
-    }
-  } else {
-    return <div>Unknown instruction</div>;
+  switch (instruction.kind) {
+    case "showDialogue":
+      return (
+        <div>
+          <div><strong>{instruction.speaker || "Narrator"}</strong></div>
+          <div>{instruction.text}</div>
+          <button onClick={handleNext}>Next</button>
+          <button onClick={handleSave}>Save</button>
+          <button onClick={handleLoad}>Load</button>
+        </div>
+      );
+    case "showChoices":
+      return (
+        <div>
+          <div>Make a choice:</div>
+          {instruction.choices.map((opt, idx) => (
+            <button key={idx} onClick={() => handleChoose(idx)}>{opt.text}</button>
+          ))}
+          <button onClick={handleSave}>Save</button>
+          <button onClick={handleLoad}>Load</button>
+        </div>
+      );
+    case "end":
+      return <div>Game Over</div>;
+    default:
+      return <div>Unknown instruction</div>;
   }
 };

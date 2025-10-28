@@ -8,7 +8,12 @@
   ],
   "scripts": {
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "dev": "turbo dev",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
@@ -16,9 +21,14 @@
     "@babel/preset-react": "^7.28.5",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "@types/react-native": "^0.72.8",
+    "@vitejs/plugin-react": "^5.1.0",
     "babel-loader": "^10.0.0",
     "css-loader": "^7.1.2",
+    "fast-check": "^4.3.0",
     "html-webpack-plugin": "^5.6.4",
+    "husky": "^8.0.0",
+    "lint-staged": "^16.2.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "style-loader": "^4.0.0",
@@ -30,6 +40,7 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "zod": "^4.1.12"
   }
 }

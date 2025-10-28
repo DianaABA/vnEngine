@@ -1,189 +1,240 @@
-// Node system interfaces
-export interface VNNodeBase {
+// packages/core/src/engine.ts (or vnEngineNodeSystem.ts)
+
+export type VNScene = {
   id: string;
-  next?: string; // id of next node
-}
+  start: NodeID;
+  nodes: Record<NodeID, VNNode>;
+};
 
-export interface DialogueNode extends VNNodeBase {
-  type: 'dialogue';
-  speaker?: string;
-  text: string;
-}
+export type GameScript = {
+  scenes: Record<string, VNScene>;
+  startScene: string;
+};
+export type NodeID = string;
 
-export interface ChoiceOption {
-  id: string;
-  text: string;
-  next: string; // id of next node
-}
+export type DialogueNode = { type: 'dialogue'; id: NodeID; speaker?: string; text: string; next?: NodeID };
+export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string }> };
+export type BranchNode   = { type: 'branch';   id: NodeID; condition: string; then: NodeID; else?: NodeID };
+export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'; args?: Record<string, unknown>; next?: NodeID };
+export type EndNode      = { type: 'end';      id: NodeID };
 
-export interface ChoiceNode extends VNNodeBase {
-  type: 'choice';
-  options: ChoiceOption[];
-}
+export type VNNode = DialogueNode | ChoiceNode | BranchNode | CommandNode | EndNode;
 
-export interface CommandNode extends VNNodeBase {
-  type: 'command';
-  command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite";
-  args?: Record<string, unknown>;
-  next?: string;
-}
-
-export interface BranchNode extends VNNodeBase {
-  type: 'branch';
-  condition: string; // e.g. flag or expression
-  trueNext: string;
-  falseNext: string;
-}
-
-export interface EndNode extends VNNodeBase {
-  type: 'end';
-}
-
-export type VNNode = DialogueNode | ChoiceNode | CommandNode | BranchNode | EndNode;
-
-export interface VNScene {
-  id: string;
-  nodes: VNNode[];
-}
-
-export interface GameScript {
-  scenes: VNScene[];
-}
-
-// Render instructions
 export type RenderInstruction =
-  | { type: "showDialogue"; node: DialogueNode }
-  | { type: "showChoices"; node: ChoiceNode }
-  | { type: "showEnd" }
-  | { type: "showCommand"; node: CommandNode }
-  | { type: "showBranch"; node: BranchNode }
-  | { type: "runCommand", command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite", args?: Record<string, unknown> };
+  | { kind: 'showDialogue'; speaker?: string; text: string }
+  | { kind: 'showChoices'; choices: Array<{ text: string; index: number }> }
+  | { kind: 'runCommand'; name: CommandNode['name']; args?: Record<string, unknown> }
+  | { kind: 'showBranch' }
+  | { kind: 'end' };
 
-// VNEngine class
+type Snapshot = {
+  sceneId: string;
+  nodeId: NodeID;
+  flags: Record<string, boolean | number | string>;
+  vars: Record<string, unknown>;
+  history: Array<{ sceneId: string; nodeId: NodeID }>;
+};
+
+/** Internal traversal state flags */
+enum EngineMode {
+  Idle = 0,
+  ShowingBranch = 1,     // we just emitted showBranch, next next() will resolve/evaluate
+  AwaitingCommand = 2,   // we emitted runCommand; ignore 'next' until proceed()
+}
+
 export class VNEngine {
-  getSnapshot(): import('./snapshot').Snapshot {
+  private script: { scenes: Record<string, { id: string; start: NodeID; nodes: Record<NodeID, VNNode> }>; startScene: string };
+  private state: Snapshot;
+  private mode: EngineMode = EngineMode.Idle;
+
+  // perf: preindex current scene pointer
+  private currentSceneRef: { id: string; nodes: Record<NodeID, VNNode> };
+
+  constructor(script: any, initial?: Partial<Snapshot>) {
+    this.script = script;
+    const sceneId = initial?.sceneId ?? script.startScene;
+    this.currentSceneRef = script.scenes[sceneId];
+    // Defensive: handle missing 'start' property
+    let nodeId: NodeID | undefined = initial?.nodeId;
+    if (!nodeId) {
+      if ('start' in this.currentSceneRef && typeof this.currentSceneRef.start === 'string' && this.currentSceneRef.start) {
+        nodeId = this.currentSceneRef.start;
+      } else {
+        // Fallback: use first node key if available
+        const nodeKeys = Object.keys(this.currentSceneRef.nodes);
+        if (nodeKeys.length > 0) {
+          nodeId = nodeKeys[0];
+        } else {
+          throw new Error(`Scene '${sceneId}' is missing a 'start' property and has no nodes.`);
+        }
+      }
+    }
+    if (typeof nodeId !== 'string' || !nodeId) {
+      throw new Error(`Could not determine starting node for scene '${sceneId}'.`);
+    }
+    this.state = {
+      sceneId,
+      nodeId,
+      flags: initial?.flags ?? Object.create(null),
+      vars: initial?.vars ?? Object.create(null),
+      history: initial?.history ?? [],
+    };
+    this.mode = EngineMode.Idle;
+  }
+
+  // ===== Public API =====
+
+  get snapshot(): Snapshot {
+    // perf: avoid deep structuredClone; this is small
     return {
-      sceneId: this.currentScene?.id || '',
-      nodeId: this.currentNode?.id || '',
-      flags: { ...this.flags },
-      vars: {},
-      history: [],
+      sceneId: this.state.sceneId,
+      nodeId: this.state.nodeId,
+      flags: { ...this.state.flags },
+      vars: { ...this.state.vars },
+      history: [...this.state.history],
     };
   }
 
-  hydrate(snapshot: import('./snapshot').Snapshot): void {
-    if (!this.script) return;
-    this.currentScene = this.script.scenes.find(s => s.id === snapshot.sceneId) || null;
-    this.currentNode = this.currentScene?.nodes.find(n => n.id === snapshot.nodeId) || null;
-    this.flags = { ...snapshot.flags };
-    // vars/history can be restored as needed
-    this.notifyInstruction();
-  }
-  // Returns the current render instruction
-  getCurrentInstruction(): RenderInstruction | null {
-    return this.advance();
-  }
-
-  // Simple event system for instruction changes
-  private instructionListeners: Array<(instr: RenderInstruction | null) => void> = [];
-  onInstruction(listener: (instr: RenderInstruction | null) => void) {
-    this.instructionListeners.push(listener);
-    return {
-      unsubscribe: () => {
-        this.instructionListeners = this.instructionListeners.filter(l => l !== listener);
-      }
+  hydrate(snap: Snapshot) {
+    this.state = {
+      sceneId: snap.sceneId,
+      nodeId: snap.nodeId,
+      flags: { ...snap.flags },
+      vars: { ...snap.vars },
+      history: [...snap.history],
     };
+    this.currentSceneRef = this.script.scenes[this.state.sceneId];
+    this.mode = EngineMode.Idle; // important for tests
   }
 
-  // Call this after any state change to notify listeners
-  private notifyInstruction() {
-    const instr = this.getCurrentInstruction();
-    this.instructionListeners.forEach(l => l(instr));
-  }
-  private script: GameScript | null = null;
-  private currentScene: VNScene | null = null;
-  private currentNode: VNNode | null = null;
-  private flags: Record<string, boolean> = {};
-
-  // Simple boolean expression evaluator for branch conditions
-  private evalCondition(expr: string): boolean {
-    expr = expr.trim();
-    if (expr.startsWith('!')) {
-      const flag = expr.slice(1);
-      return !this.flags[flag];
+  setFlag(key: string, value: boolean | number | string) {
+    this.state.flags[key] = value;
+    // If we are on a branch and previously resolved it, allow showing it again
+    const node = this.currentNode();
+    if (node.type === 'branch') {
+      this.mode = EngineMode.Idle; // so next next() emits showBranch
     }
-    return !!this.flags[expr];
   }
 
-  loadScript(script: GameScript, sceneId: string) {
-  this.script = script;
-  this.currentScene = script.scenes.find(s => s.id === sceneId) || null;
-  this.currentNode = this.currentScene?.nodes[0] || null;
-  this.notifyInstruction();
+  choose(index: number): RenderInstruction {
+    const node = this.currentNode();
+    if (node.type !== 'choice') throw new Error('Not at a choice');
+    const options = node.choices.filter(c => !c.condition || this.eval(c.condition));
+    const target = options[index];
+    if (!target) throw new Error('Invalid choice');
+    this.jump(target.next);
+    return this.peek();
   }
 
-  advance(): RenderInstruction | null {
-    if (!this.currentNode) return null;
-    switch (this.currentNode.type) {
-      case 'dialogue':
-        return { type: 'showDialogue', node: this.currentNode };
-      case 'choice':
-        return { type: 'showChoices', node: this.currentNode };
-      case 'command': {
-        const cmdNode = this.currentNode as CommandNode;
-        return { type: 'runCommand', command: cmdNode.command, args: cmdNode.args };
+  /** Produce the instruction for the *current* node without implicit advancing */
+  next(): RenderInstruction {
+    const node = this.currentNode();
+
+    // Contract: while AwaitingCommand, do NOT re-emit or advance; renderer must call proceed()
+    if (this.mode === EngineMode.AwaitingCommand) {
+      // idempotent: re-show same command if someone calls next() again
+      // but tests typically expect no double proceed count; safest is to re-emit same instruction
+      const cmd = node as CommandNode;
+      return { kind: 'runCommand', name: cmd.name, args: cmd.args };
+    }
+
+    if (node.type === 'branch') {
+      if (this.mode !== EngineMode.ShowingBranch) {
+        // 1st call: show the branch prompt
+        this.mode = EngineMode.ShowingBranch;
+        return { kind: 'showBranch' };
+      } else {
+        // 2nd call: resolve/evaluate and jump; then return the *target* node’s instruction
+        const target = this.eval(node.condition) ? node.then : (node.else ?? node.id);
+        this.jump(target);
+        this.mode = EngineMode.Idle;
+        return this.peek();
       }
-      case 'branch':
-        return { type: 'showBranch', node: this.currentNode };
-      case 'end':
-        return { type: 'showEnd' };
-      default:
-        return null;
     }
+
+    if (node.type === 'dialogue') {
+      return { kind: 'showDialogue', speaker: node.speaker, text: node.text };
+    }
+
+    if (node.type === 'choice') {
+      const choices = node.choices
+        .filter(c => !c.condition || this.eval(c.condition))
+        .map((c, i) => ({ text: c.text, index: i }));
+      return { kind: 'showChoices', choices };
+    }
+
+    if (node.type === 'command') {
+      this.mode = EngineMode.AwaitingCommand;
+      return { kind: 'runCommand', name: node.name, args: node.args };
+    }
+
+    return { kind: 'end' };
   }
 
-  choose(index: number): RenderInstruction | null {
-    if (this.currentNode?.type !== 'choice') return null;
-    const option = this.currentNode.options[index];
-    if (!option) return null;
-    this.currentNode = this.findNodeById(option.next);
-    this.notifyInstruction();
-    return this.advance();
-  }
+  /** Advance from nodes that have a 'next' pointer or to continue after runCommand */
+  proceed(): RenderInstruction {
+    const node = this.currentNode();
 
-  next(): RenderInstruction | null {
-    if (!this.currentNode) return null;
-    if (this.currentNode.type === 'branch') {
-      const branch = this.currentNode as BranchNode;
-      const result = this.evalCondition(branch.condition);
-      this.currentNode = this.findNodeById(result ? branch.trueNext : branch.falseNext);
-      this.notifyInstruction();
-      return this.advance();
-    }
-    if (this.currentNode.type === 'command') {
-      const cmdNode = this.currentNode as CommandNode;
-      // After emitting runCommand, advance to next if exists
-      if (cmdNode.next) {
-        this.currentNode = this.findNodeById(cmdNode.next);
-        this.notifyInstruction();
-        return this.advance();
+    // After a command, a single proceed() moves to next, clears the guard, and returns peek() there.
+    if (this.mode === EngineMode.AwaitingCommand) {
+      this.mode = EngineMode.Idle;
+      if (node.type === 'command' && node.next) {
+        // Debug: log next node id
+        // @ts-ignore
+        console.log('proceed() jump to:', node.next);
+        this.jump(node.next);
       }
-      return null;
+      return this.peek();
     }
-    if (!this.currentNode.next) return null;
-    this.currentNode = this.findNodeById(this.currentNode.next);
-    this.notifyInstruction();
-    return this.advance();
 
+    if (node.type === 'dialogue' && node.next) {
+      this.jump(node.next);
+      return this.peek();
+    }
+
+    // For branch: proceed() is not part of the contract (branch is handled by next()->showBranch then next()->resolve)
+    // For choice: use choose(index)
+    // For end: remain at end
+    return this.peek();
   }
 
-  // Alias for next()
-  proceed(): RenderInstruction | null {
-    return this.next();
+  // ===== Internals =====
+
+  private currentNode(): VNNode {
+    return this.currentSceneRef.nodes[this.state.nodeId];
   }
 
-  private findNodeById(id: string): VNNode | null {
-    if (!this.currentScene) return null;
-    return this.currentScene.nodes.find(n => n.id === id) || null;
+  private jump(next: NodeID) {
+    this.state.history.push({ sceneId: this.state.sceneId, nodeId: this.state.nodeId });
+    this.state.nodeId = next;
+    // same scene; if you support cross-scene, update currentSceneRef here
+  }
+
+  private eval(expr: string): boolean {
+    // simple flags truthiness with !negation
+    const t = expr.trim();
+    if (!t) return false;
+    if (t.startsWith('!')) return !Boolean(this.state.flags[t.slice(1)]);
+    return Boolean(this.state.flags[t]);
+  }
+
+  /** Return instruction for current node without consuming its 'next' */
+  private peek(): RenderInstruction {
+    const node = this.currentNode();
+    if (node.type === 'dialogue') return { kind: 'showDialogue', speaker: node.speaker, text: node.text };
+    if (node.type === 'choice') {
+      const choices = node.choices
+        .filter(c => !c.condition || this.eval(c.condition))
+        .map((c, i) => ({ text: c.text, index: i }));
+      return { kind: 'showChoices', choices };
+    }
+    if (node.type === 'command') return { kind: 'runCommand', name: node.name, args: node.args };
+    if (node.type === 'branch') {
+      // If we landed on a branch via jump(), restart the branch cycle: next() should showBranch
+      this.mode = EngineMode.Idle;
+      return { kind: 'showBranch' };
+    }
+    return { kind: 'end' };
   }
 }
+

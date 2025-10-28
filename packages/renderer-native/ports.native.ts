@@ -1,6 +1,6 @@
 // TODO: Implement React Native adapters for VNEngine rendering ports
 // Example types for native platform
-import { AudioPort, BgPort, SpritePort } from '@vn/core/src/ports';
+import { AudioPort, BgPort, SpritePort } from '@vn/core';
 
 // AudioPort implementation for React Native
 export class NativeAudioPort implements AudioPort {

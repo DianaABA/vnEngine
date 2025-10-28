@@ -1,3 +1,32 @@
+# Commands System
+
+## Command Table
+
+| Command Name   | Args Schema                                              | Typical Effect         | Executed By |
+|--------------- |---------------------------------------------------------|-----------------------|-------------|
+| setBackground  | { name: 'setBackground', key: string }                  | Change background     | BgPort      |
+| showSprite     | { name: 'showSprite', id: string, pose?: string, at? }  | Show sprite           | SpritePort  |
+| hideSprite     | { name: 'hideSprite', id: string }                      | Hide sprite           | SpritePort  |
+| playMusic      | { name: 'playMusic', idOrUrl: string, loop?: boolean }  | Play music/audio      | AudioPort   |
+| stopMusic      | { name: 'stopMusic', id?: string }                      | Stop music/audio      | AudioPort   |
+| setFlag        | { name: 'setFlag', key: string, value: boolean }        | Set engine flag       | Renderer    |
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+	participant Engine
+	participant Renderer
+	participant Ports
+	Engine->>Renderer: runCommand (name, args)
+	Renderer->>Ports: Dispatch to BgPort/SpritePort/AudioPort
+	Renderer->>Engine: proceed()
+```
+
+## Notes
+- The engine emits runCommand instructions for command nodes, but does not mutate UI/audio/flags directly.
+- Renderer dispatches commands to platform ports and calls engine.proceed() after handling.
+- Flags are only mutated when renderer calls engine.setFlag(key, value).
 # VNEngine Monorepo Milestone Summary & Roadmap
 
 ## 1. Core Modules Status

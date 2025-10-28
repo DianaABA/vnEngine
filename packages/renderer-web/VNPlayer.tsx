@@ -37,27 +37,26 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   // Command dispatcher
   useEffect(() => {
     if (!instruction) return;
-    if (instruction.type === 'runCommand' || (instruction as any).kind === 'runCommand') {
-      const cmd = (instruction as any);
-      const { command, args } = cmd;
-      switch (command) {
+    if ('kind' in instruction && instruction.kind === 'runCommand') {
+      const { name, args } = instruction;
+      switch (name) {
         case 'setBackground':
-          setBgKey(args?.key || '');
+          setBgKey((args as any).key || '');
           break;
         case 'showSprite':
           setSprites((prev) => [...prev, args]);
           break;
         case 'hideSprite':
-          setSprites((prev) => prev.filter(s => s.id !== args?.id));
+          setSprites((prev) => prev.filter(s => s.id !== (args as any).id));
           break;
         case 'playMusic':
-          setAudio(args?.id || '');
+          setAudio((args as any).idOrUrl || '');
           break;
         case 'stopMusic':
           setAudio('');
           break;
         case 'setFlag':
-          setFlags((prev) => ({ ...prev, [args?.flag]: true }));
+          setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
           break;
         default:
           break;
@@ -70,13 +69,13 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!instruction) return;
-      if (instruction.type === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
+      if ('type' in instruction && instruction.type === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
         handleNext();
       }
-      if (instruction.type === 'showChoices' && /^[1-9]$/.test(e.key)) {
+      if ('type' in instruction && instruction.type === 'showChoices' && /^[1-9]$/.test(e.key)) {
         handleChoice(Number(e.key) - 1);
       }
-      if (instruction.type === 'showChoices' && e.key === 'Escape') {
+      if ('type' in instruction && instruction.type === 'showChoices' && e.key === 'Escape') {
         handleNext();
       }
     };
@@ -86,7 +85,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
 
   if (!instruction) return <div>Loading...</div>;
 
-  switch (instruction.type) {
+  if ('type' in instruction) {
+    switch (instruction.type) {
     case 'showDialogue': {
       const node = (instruction as any).node;
       return (
@@ -136,4 +136,6 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     default:
       return <div>Unknown instruction</div>;
   }
+}
+// ...existing code...
 };

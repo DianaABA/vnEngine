@@ -1,5 +1,5 @@
 import { SaveAdapter } from './SaveAdapter';
-import { Snapshot } from '@vn/core/src/snapshot';
+import { Snapshot } from '@vn/core';
 
 export class LocalStorageAdapter implements SaveAdapter {
   constructor(private prefix: string = 'vn_save_') {}

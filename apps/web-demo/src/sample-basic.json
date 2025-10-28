@@ -1,0 +1,16 @@
+{
+  "scenes": [
+    {
+      "id": "scene1",
+      "nodes": [
+        { "id": "d1", "type": "dialogue", "text": "Welcome to the demo!", "next": "c1" },
+        { "id": "c1", "type": "choice", "options": [
+          { "id": "o1", "text": "Go left", "next": "e1" },
+          { "id": "o2", "text": "Go right", "next": "e2" }
+        ] },
+        { "id": "e1", "type": "end" },
+        { "id": "e2", "type": "end" }
+      ]
+    }
+  ]
+}
