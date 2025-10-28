@@ -1,0 +1,35 @@
+{
+  "name": "@vn/renderer-native",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+  "types": "tsc -b",
+    "build": "npm run types && tsup src/index.ts --format esm,cjs --out-dir dist",
+    "prepublishOnly": "npm run build && npm run test"
+  },
+  "license": "MIT",
+  "publishConfig": { "access": "public" },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.73.0",
+    "expo-av": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
