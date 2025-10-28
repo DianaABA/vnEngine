@@ -3,7 +3,9 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "moduleResolution": "bundler",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "types": ["vite/client"]
   },
   "include": ["src", "vite.config.ts"]
 }

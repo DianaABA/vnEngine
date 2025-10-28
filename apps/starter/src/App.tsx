@@ -1,27 +1,12 @@
 import React, { useMemo } from 'react';
 import { VNEngine } from '@vn/core';
 import { VNPlayerLite } from './VNPlayerLite';
+import episode from './scripts/episode1.json';
+import { loadEngineScript } from './lib/loadEngineScript';
 
 export default function App() {
   // Minimal inline script matching VNEngine constructor shape
-  const engine = useMemo(() => {
-    const script = {
-      startScene: 'main',
-      scenes: {
-        main: {
-          id: 'main',
-          start: 'n1',
-          nodes: {
-            n1: { type: 'dialogue', id: 'n1', speaker: 'Alice', text: 'Welcome to your VN starter!', next: 'n2' },
-            n2: { type: 'choice', id: 'n2', choices: [{ text: 'Continue', next: 'n3' }] },
-            n3: { type: 'dialogue', id: 'n3', text: 'Replace this with your own script.', next: 'n4' },
-            n4: { type: 'end', id: 'n4' },
-          },
-        },
-      },
-    } as const;
-    return new VNEngine(script);
-  }, []);
+  const engine = useMemo(() => new VNEngine(loadEngineScript(episode)), []);
 
   return (
     <div style={{ maxWidth: 720, margin: '2rem auto', fontFamily: 'system-ui, sans-serif' }}>
