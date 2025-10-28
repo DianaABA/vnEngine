@@ -57,10 +57,49 @@ export type RenderInstruction =
   | { type: "showEnd" }
   | { type: "showCommand"; node: CommandNode }
   | { type: "showBranch"; node: BranchNode }
-  | { kind: "runCommand", command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite", args?: Record<string, unknown> };
+  | { type: "runCommand", command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite", args?: Record<string, unknown> };
 
 // VNEngine class
 export class VNEngine {
+  getSnapshot(): import('./snapshot').Snapshot {
+    return {
+      sceneId: this.currentScene?.id || '',
+      nodeId: this.currentNode?.id || '',
+      flags: { ...this.flags },
+      vars: {},
+      history: [],
+    };
+  }
+
+  hydrate(snapshot: import('./snapshot').Snapshot): void {
+    if (!this.script) return;
+    this.currentScene = this.script.scenes.find(s => s.id === snapshot.sceneId) || null;
+    this.currentNode = this.currentScene?.nodes.find(n => n.id === snapshot.nodeId) || null;
+    this.flags = { ...snapshot.flags };
+    // vars/history can be restored as needed
+    this.notifyInstruction();
+  }
+  // Returns the current render instruction
+  getCurrentInstruction(): RenderInstruction | null {
+    return this.advance();
+  }
+
+  // Simple event system for instruction changes
+  private instructionListeners: Array<(instr: RenderInstruction | null) => void> = [];
+  onInstruction(listener: (instr: RenderInstruction | null) => void) {
+    this.instructionListeners.push(listener);
+    return {
+      unsubscribe: () => {
+        this.instructionListeners = this.instructionListeners.filter(l => l !== listener);
+      }
+    };
+  }
+
+  // Call this after any state change to notify listeners
+  private notifyInstruction() {
+    const instr = this.getCurrentInstruction();
+    this.instructionListeners.forEach(l => l(instr));
+  }
   private script: GameScript | null = null;
   private currentScene: VNScene | null = null;
   private currentNode: VNNode | null = null;
@@ -77,9 +116,10 @@ export class VNEngine {
   }
 
   loadScript(script: GameScript, sceneId: string) {
-    this.script = script;
-    this.currentScene = script.scenes.find(s => s.id === sceneId) || null;
-    this.currentNode = this.currentScene?.nodes[0] || null;
+  this.script = script;
+  this.currentScene = script.scenes.find(s => s.id === sceneId) || null;
+  this.currentNode = this.currentScene?.nodes[0] || null;
+  this.notifyInstruction();
   }
 
   advance(): RenderInstruction | null {
@@ -91,7 +131,7 @@ export class VNEngine {
         return { type: 'showChoices', node: this.currentNode };
       case 'command': {
         const cmdNode = this.currentNode as CommandNode;
-        return { kind: 'runCommand', command: cmdNode.command, args: cmdNode.args };
+        return { type: 'runCommand', command: cmdNode.command, args: cmdNode.args };
       }
       case 'branch':
         return { type: 'showBranch', node: this.currentNode };
@@ -103,10 +143,11 @@ export class VNEngine {
   }
 
   choose(index: number): RenderInstruction | null {
-  if (this.currentNode?.type !== 'choice') return null;
+    if (this.currentNode?.type !== 'choice') return null;
     const option = this.currentNode.options[index];
     if (!option) return null;
     this.currentNode = this.findNodeById(option.next);
+    this.notifyInstruction();
     return this.advance();
   }
 
@@ -116,6 +157,7 @@ export class VNEngine {
       const branch = this.currentNode as BranchNode;
       const result = this.evalCondition(branch.condition);
       this.currentNode = this.findNodeById(result ? branch.trueNext : branch.falseNext);
+      this.notifyInstruction();
       return this.advance();
     }
     if (this.currentNode.type === 'command') {
@@ -123,13 +165,21 @@ export class VNEngine {
       // After emitting runCommand, advance to next if exists
       if (cmdNode.next) {
         this.currentNode = this.findNodeById(cmdNode.next);
+        this.notifyInstruction();
         return this.advance();
       }
       return null;
     }
     if (!this.currentNode.next) return null;
     this.currentNode = this.findNodeById(this.currentNode.next);
+    this.notifyInstruction();
     return this.advance();
+
+  }
+
+  // Alias for next()
+  proceed(): RenderInstruction | null {
+    return this.next();
   }
 
   private findNodeById(id: string): VNNode | null {

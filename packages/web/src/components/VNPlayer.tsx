@@ -91,15 +91,6 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
       default:
         return <div>Unknown instruction</div>;
     }
-  } else if (instruction.kind === "runCommand") {
-    // Handle runCommand instructions (dispatcher logic can be added here)
-    return (
-      <div>
-        <div>Run Command: {instruction.command}</div>
-        <pre>{JSON.stringify(instruction.args, null, 2)}</pre>
-        <button onClick={handleNext}>Continue</button>
-      </div>
-    );
   } else {
     return <div>Unknown instruction</div>;
   }

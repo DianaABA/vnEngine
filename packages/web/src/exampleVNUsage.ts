@@ -1,5 +1,7 @@
 import episode1 from '@assets/scripts/episode1.json';
-import { VNEngine, VNEpisode, VNScene, VNLine, VNChoice, parseEpisode, loadEpisodeToSceneManager } from '@vn/core';
+import { VNEngine } from '@vn/core/src/VNEngine';
+import { VNEpisode, VNScene, VNLine, VNChoice } from '@vn/core/src/types';
+import { parseEpisode, loadEpisodeToSceneManager } from '@vn/core/src/parser';
 
 // 1. Load episode JSON and parse
 const episode: VNEpisode = parseEpisode(JSON.stringify(episode1));
