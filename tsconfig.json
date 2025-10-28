@@ -10,6 +10,7 @@
     { "path": "./packages/script" },
     { "path": "./packages/storage" },
     { "path": "./packages/renderer-web" },
-    { "path": "./examples/web-demo" }
+    { "path": "./examples/web-demo" },
+    { "path": "./packages/web" }
   ]
 }

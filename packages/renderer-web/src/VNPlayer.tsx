@@ -82,13 +82,13 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!instruction || isCommandRunning) return;
-      if ('type' in instruction && instruction.type === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
+      if ('kind' in instruction && instruction.kind === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
         handleNext();
       }
-      if ('type' in instruction && instruction.type === 'showChoices' && /^[1-9]$/.test(e.key)) {
+      if ('kind' in instruction && instruction.kind === 'showChoices' && /^[1-9]$/.test(e.key)) {
         handleChoice(Number(e.key) - 1);
       }
-      if ('type' in instruction && instruction.type === 'showChoices' && e.key === 'Escape') {
+      if ('kind' in instruction && instruction.kind === 'showChoices' && e.key === 'Escape') {
         handleNext();
       }
     };
@@ -98,26 +98,23 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
 
   if (!instruction) return <div>Loading...</div>;
 
-  if ('type' in instruction) {
-    switch (instruction.type) {
+  if ('kind' in instruction) {
+    switch (instruction.kind) {
     case 'showDialogue': {
-      const node = (instruction as any).node;
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
           <Sprites sprites={sprites} assets={assets.sprites} />
           <AudioPlayer trackId={audio} assets={assets.audio} />
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
-            <div className="font-bold" aria-label="Speaker">{node.speaker || 'Narrator'}</div>
-            <div className="mt-2" aria-label="Dialogue">{node.text}</div>
+            <div className="font-bold" aria-label="Speaker">{instruction.speaker || 'Narrator'}</div>
+            <div className="mt-2" aria-label="Dialogue">{instruction.text}</div>
             <button className="mt-4 px-4 py-2 bg-blue-600 rounded focus:outline-none focus:ring" onClick={handleNext} aria-label="Next">Next</button>
           </div>
         </div>
       );
     }
     case 'showChoices': {
-      const node = (instruction as any).node;
-      const choices = node.choices as {id: string; text: string}[];
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
@@ -125,16 +122,16 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
           <AudioPlayer trackId={audio} assets={assets.audio} />
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
-            {choices.map((choice: {id: string; text: string}, i: number) => (
-              <button key={choice.id} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(i)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
+            {instruction.choices.map((choice, i) => (
+              <button key={i} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(i)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
             ))}
           </div>
         </div>
       );
     }
-    case 'showCommand':
+    case 'runCommand':
       return <div>Running command...</div>;
-    case 'showEnd':
+    case 'end':
       return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
