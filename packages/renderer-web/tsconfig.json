@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
     "composite": true,
-  "types": ["vitest/globals", "vite/client"],
-  "moduleResolution": "bundler",
+    "types": ["vitest/globals", "vite/client"],
+    "moduleResolution": "bundler",
     "target": "ES2021",
     "module": "ESNext",
     "lib": ["DOM", "ES2021"],
     "jsx": "react",
-  // ...existing code...
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -15,12 +14,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
-    "outDir": "dist",
-    "baseUrl": "./",
-    "paths": {
-      "@vn/core/*": ["../core/src/*"]
-    }
+  "outDir": "dist",
+  "declaration": true,
+    "baseUrl": "./"
   },
-  "include": ["src", "*.ts", "*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
