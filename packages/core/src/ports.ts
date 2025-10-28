@@ -1,24 +1,16 @@
 // Abstract interfaces for cross-platform rendering
 export interface AudioPort {
-  playMusic(track: string): void;
-  stopMusic(): void;
-  playSound(effect: string): void;
+  play(idOrUrl: string, loop?: boolean): void;
+  stop(id?: string): void;
 }
 
 export interface BgPort {
-  setBackground(image: string): void;
-  clearBackground(): void;
+  setBackground(key: string): void;
 }
 
 export interface SpritePort {
-  showSprite(id: string, image: string, position?: string): void;
-  hideSprite(id: string): void;
-  moveSprite(id: string, position: string): void;
+  show(id: string, pose?: string, at?: { x?: number; y?: number; z?: number }): void;
+  hide(id: string): void;
 }
 
-// Example: VNEngine can accept these ports for platform-specific rendering
-export interface VNEnginePorts {
-  audio: AudioPort;
-  background: BgPort;
-  sprite: SpritePort;
-}
+// Platform adapters should implement these interfaces for each platform (web, native, etc.)

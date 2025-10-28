@@ -1,0 +1,40 @@
+{
+  "scenes": [
+    {
+      "id": "scene1",
+      "nodes": [
+        {
+          "id": "n1",
+          "type": "dialogue",
+          "speaker": "Camilla",
+          "text": "Another stormy night...",
+          "next": "n2"
+        },
+        {
+          "id": "n2",
+          "type": "choice",
+          "options": [
+            { "id": "opt1", "text": "Open door", "next": "n3" },
+            { "id": "opt2", "text": "Stay inside", "next": "n4" }
+          ]
+        },
+        {
+          "id": "n3",
+          "type": "dialogue",
+          "text": "You open the door and step outside.",
+          "next": "n5"
+        },
+        {
+          "id": "n4",
+          "type": "dialogue",
+          "text": "You decide to stay inside, listening to the rain.",
+          "next": "n5"
+        },
+        {
+          "id": "n5",
+          "type": "end"
+        }
+      ]
+    }
+  ]
+}
