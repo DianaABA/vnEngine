@@ -7,14 +7,11 @@
   // ...existing code...
   "jsx": "react-jsx",
   "resolveJsonModule": true,
-    "baseUrl": "src",
-    "paths": {
-      "@core/*": ["../../core/src/*"],
-      "@assets/*": ["../../assets/*"]
-    }
+    "baseUrl": "src"
   },
   "include": ["src"],
   "references": [
-    { "path": "../core" }
+    { "path": "../core" },
+    { "path": "../storage" }
   ]
 }

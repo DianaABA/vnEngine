@@ -19,7 +19,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-  "types": "tsc -b",
+  "types": "tsc --emitDeclarationOnly --declaration --project tsconfig.json",
     "build": "npm run types && tsup src/index.ts --format esm,cjs --out-dir dist",
     "prepublishOnly": "npm run build && npm run test"
   },
