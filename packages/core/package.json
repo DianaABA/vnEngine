@@ -2,12 +2,12 @@
   "name": "@vn/core",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts && tsc --emitDeclarationOnly --declaration --project tsconfig.tsup.json"
+  "build": "tsup src/index.ts && tsc --emitDeclarationOnly --declaration --project tsconfig.tsup.json && npx shx cp dist/src/index.d.ts dist/index.d.ts"
   },
   "dependencies": {
     "framer-motion": "^12.23.24"
