@@ -13,6 +13,7 @@
     "build": "npm -ws --if-present run build",
     "build:packages": "npm run build -w @vn/core -w @vn/storage -w @vn/renderer-web -w @vn/renderer-native -w @vn/storage-native",
     "dev": "turbo dev",
+    "dev:starter": "npm run dev -w apps/starter",
     "lint": "eslint \"packages/**/src/**/*.{ts,tsx}\" \"examples/**/src/**/*.{ts,tsx}\" vitest.setup.ts",
     "typecheck": "tsc -b --pretty false",
     "test": "npm -ws --if-present run test",
