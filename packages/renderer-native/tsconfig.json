@@ -1,13 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-  "types": ["react-native"],
-    "jsx": "react-native",
-    "outDir": "dist",
-    "declaration": true,
-    "declarationDir": "dist/types"
+    "jsx": "react-jsx",
+  "outDir": "dist",
+  "declaration": true,
+    "lib": ["ES2021"]
   },
-  "include": ["*.ts", "*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"],
   "references": []
 }

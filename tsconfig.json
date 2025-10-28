@@ -1,14 +1,15 @@
 {
+  "extends": "./tsconfig.base.json",
   "files": [],
   "include": ["vitest.setup.ts"],
   "compilerOptions": {
     "types": ["vitest/globals"]
   },
   "references": [
-  { "path": "./packages/core" },
-  { "path": "./packages/script" },
-  { "path": "./packages/storage" },
-  { "path": "./packages/renderer-web" },
-  { "path": "./examples/web-demo" }
+    { "path": "./packages/core" },
+    { "path": "./packages/script" },
+    { "path": "./packages/storage" },
+    { "path": "./packages/renderer-web" },
+    { "path": "./examples/web-demo" }
   ]
 }

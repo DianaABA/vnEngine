@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
-/* eslint-env jest, node */
+/* eslint-env node */
 
-import '@testing-library/jest-dom';
+// Use the Vitest-compatible matcher extensions
+import '@testing-library/jest-dom/vitest';
 
 beforeAll(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => {});

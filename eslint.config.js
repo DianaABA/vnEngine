@@ -11,13 +11,47 @@ export default [
       'node_modules/',
       'dist/',
       'build/',
-      'coverage/'
+      'coverage/',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      'examples/**/dist/**',
+      '**/*.d.ts'
     ],
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser,
       ecmaVersion: 'latest',
       sourceType: 'module',
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        console: 'readonly',
+        alert: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        performance: 'readonly',
+        AbortController: 'readonly',
+        MessageChannel: 'readonly',
+        FormData: 'readonly',
+        fetch: 'readonly',
+        KeyboardEvent: 'readonly',
+        HTMLAudioElement: 'readonly',
+        HTMLImageElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        // Vitest globals
+        vi: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
@@ -26,6 +60,11 @@ export default [
     rules: {
       'react/jsx-uses-react': 'error',
       'react/jsx-uses-vars': 'error',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
     },
   },
 ];

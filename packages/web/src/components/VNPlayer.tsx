@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { VNEngine, RenderInstruction, DialogueNode, ChoiceNode } from "@vn/core/src/vnEngineNodeSystem";
+import { VNEngine, RenderInstruction } from "@vn/core/src/vnEngineNodeSystem";
 import { LocalStorageAdapter } from "@vn/core/src/LocalStorageAdapter";
 
 interface VNPlayerProps {
@@ -11,16 +11,15 @@ const saveAdapter = new LocalStorageAdapter();
 
 export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }) => {
   const [instruction, setInstruction] = useState<RenderInstruction | null>(engine.next());
-  const [choiceIndex, setChoiceIndex] = useState<number | null>(null);
+  // Track choice selection if needed in the future
 
   const handleNext = () => {
     setInstruction(engine.next());
-    setChoiceIndex(null);
+  // no-op
   };
 
   const handleChoose = (index: number) => {
-    setInstruction(engine.choose(index));
-    setChoiceIndex(index);
+  setInstruction(engine.choose(index));
   };
 
   const handleSave = () => {
@@ -38,7 +37,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
   // Re-create engine with saved snapshot
   const newEngine = new VNEngine(engine['script'], { sceneId: data.scene, nodeId: data.node });
   setInstruction(newEngine.next());
-      setChoiceIndex(null);
+  // no-op
       alert("Game loaded!");
     } else {
       alert("No save found.");
