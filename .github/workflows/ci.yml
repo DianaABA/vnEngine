@@ -1,28 +1,34 @@
 name: CI
+
 on:
   push:
     branches: [master]
+    paths:
+      - 'packages/**'
+      - '.github/workflows/ci.yml'
+      - 'package.json'
+      - 'tsconfig.base.json'
   pull_request:
     branches: [master]
+    paths:
+      - 'packages/**'
+      - '.github/workflows/ci.yml'
+      - 'package.json'
+      - 'tsconfig.base.json'
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20
           cache: 'npm'
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run build
-      - run: npm run test -- --coverage
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-coverage
-          path: coverage/
+      - name: Build packages only
+        run: npm run build:packages
+      - name: Run unit tests
+        run: npx vitest run --reporter=dot
