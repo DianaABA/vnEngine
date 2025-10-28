@@ -4,20 +4,10 @@
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./ports": {
-      "types": "./dist/src/ports.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./commands": {
-      "types": "./dist/src/commands/registry.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
@@ -33,6 +23,8 @@
     "build": "npm run types && tsup src/index.ts --format esm,cjs --out-dir dist",
     "prepublishOnly": "npm run build && npm run test"
   },
+  "license": "MIT",
+  "publishConfig": { "access": "public" },
   "dependencies": {
     "typescript": "^5.9.3"
   },

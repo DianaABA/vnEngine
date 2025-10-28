@@ -1,4 +1,4 @@
-import { GameScript, VNScene, VNNode } from "./vnEngineNodeSystem";
+import { GameScript } from "./vnEngineNodeSystem";
 
 /**
  * Validates and loads a JSON object into a strongly typed GameScript.

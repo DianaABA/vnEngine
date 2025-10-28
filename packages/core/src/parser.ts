@@ -1,5 +1,5 @@
 import { VNEpisode } from './types';
-import { SceneManager, Scene } from './SceneManager';
+import { SceneManager } from './SceneManager';
 
 export function parseEpisode(json: string): VNEpisode {
   return JSON.parse(json);

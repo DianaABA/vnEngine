@@ -1,8 +1,10 @@
-import { SceneManager, Scene } from './SceneManager';
-import { DialogueManager, DialogueLine } from './DialogueManager';
+import { SceneManager } from './SceneManager';
+import type { Scene } from './SceneManager';
+import { DialogueManager } from './DialogueManager';
 import { ChoiceManager, Choice } from './ChoiceManager';
 import { SaveManager } from './SaveManager';
-import { AssetManager, Asset } from './AssetManager';
+import { AssetManager } from './AssetManager';
+import type { Asset } from './AssetManager';
 
 export class VNEngine {
   sceneManager: SceneManager;
@@ -19,7 +21,7 @@ export class VNEngine {
     this.assetManager = new AssetManager();
 
     // Example event wiring
-    this.sceneManager.onSceneChange = (scene: Scene) => {
+    this.sceneManager.onSceneChange = (_scene: Scene) => {
       // Load scene data, update dialogue, choices, etc.
     };
     this.choiceManager.onChoiceSelected = (choice: Choice) => {
@@ -27,7 +29,7 @@ export class VNEngine {
         this.sceneManager.goToScene(choice.nextSceneId);
       }
     };
-    this.assetManager.onAssetLoaded = (asset: Asset) => {
+    this.assetManager.onAssetLoaded = (_asset: Asset) => {
       // Handle asset ready (e.g., notify renderer)
     };
   }

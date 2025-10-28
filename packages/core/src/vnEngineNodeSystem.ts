@@ -179,9 +179,6 @@ export class VNEngine {
     if (this.mode === EngineMode.AwaitingCommand) {
       this.mode = EngineMode.Idle;
       if (node.type === 'command' && node.next) {
-        // Debug: log next node id
-        // @ts-ignore
-        console.log('proceed() jump to:', node.next);
         this.jump(node.next);
       }
       return this.peek();
@@ -214,8 +211,12 @@ export class VNEngine {
     // simple flags truthiness with !negation
     const t = expr.trim();
     if (!t) return false;
-    if (t.startsWith('!')) return !Boolean(this.state.flags[t.slice(1)]);
-    return Boolean(this.state.flags[t]);
+    if (t.startsWith('!')) {
+      const key = t.slice(1);
+      return !this.state.flags[key as keyof typeof this.state.flags];
+    }
+    const v = this.state.flags[t as keyof typeof this.state.flags];
+    return !!v;
   }
 
   /** Return instruction for current node without consuming its 'next' */
