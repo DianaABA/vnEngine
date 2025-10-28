@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import episode1 from '@assets/scripts/episode1.json';
 import { VNEngine, VNEpisode, VNScene, VNLine, VNChoice, parseEpisode, loadEpisodeToSceneManager } from '@vn/core';
 import { motion, AnimatePresence } from 'framer-motion';
+const MotionImg = motion.img as React.FC<React.ImgHTMLAttributes<HTMLImageElement> & { animate?: any; initial?: any; exit?: any; transition?: any; }>;
+const MotionDiv = motion.div as React.FC<React.HTMLAttributes<HTMLDivElement> & { animate?: any; initial?: any; exit?: any; transition?: any; }>;
 
 const engine = new VNEngine();
 const episode: VNEpisode = parseEpisode(JSON.stringify(episode1));
@@ -56,8 +58,8 @@ export const GameCanvas: React.FC = () => {
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-end bg-black">
       <AnimatePresence mode="wait">
-        <motion.img
-          key={background + fadeKey}
+        <MotionImg
+          key={`${String(background)}_${String(fadeKey)}`}
           src={background}
           alt="Background"
           className="absolute inset-0 w-full h-full object-cover"
@@ -68,8 +70,8 @@ export const GameCanvas: React.FC = () => {
         />
       </AnimatePresence>
       <div className="relative z-10 w-full max-w-xl mb-12">
-        <motion.div
-          key={currentLine.id + fadeKey}
+        <MotionDiv
+          key={`${String(currentLine.id)}_${String(fadeKey)}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
@@ -101,7 +103,7 @@ export const GameCanvas: React.FC = () => {
               Next
             </button>
           )}
-        </motion.div>
+  </MotionDiv>
       </div>
     </div>
   );

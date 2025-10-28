@@ -23,8 +23,9 @@ export interface ChoiceNode extends VNNodeBase {
 
 export interface CommandNode extends VNNodeBase {
   type: 'command';
-  command: string;
-  args?: any;
+  command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite";
+  args?: Record<string, unknown>;
+  next?: string;
 }
 
 export interface BranchNode extends VNNodeBase {
@@ -51,12 +52,12 @@ export interface GameScript {
 
 // Render instructions
 export type RenderInstruction =
-  | { type: 'showDialogue'; node: DialogueNode }
-  | { type: 'showChoices'; node: ChoiceNode }
-  | { type: 'showEnd' }
-  | { type: 'showCommand'; node: CommandNode }
-  | { type: 'showBranch'; node: BranchNode }
-  | { type: 'runCommand'; node: CommandNode };
+  | { type: "showDialogue"; node: DialogueNode }
+  | { type: "showChoices"; node: ChoiceNode }
+  | { type: "showEnd" }
+  | { type: "showCommand"; node: CommandNode }
+  | { type: "showBranch"; node: BranchNode }
+  | { kind: "runCommand", command: "setBackground" | "playMusic" | "stopMusic" | "setFlag" | "showSprite" | "hideSprite", args?: Record<string, unknown> };
 
 // VNEngine class
 export class VNEngine {
@@ -89,12 +90,8 @@ export class VNEngine {
       case 'choice':
         return { type: 'showChoices', node: this.currentNode };
       case 'command': {
-        // Recognize special commands and emit runCommand
-        const cmd = this.currentNode.command;
-        if (cmd === 'setBackground' || cmd === 'playMusic' || cmd === 'setFlag') {
-          return { type: 'runCommand', node: this.currentNode };
-        }
-        return { type: 'showCommand', node: this.currentNode };
+        const cmdNode = this.currentNode as CommandNode;
+        return { kind: 'runCommand', command: cmdNode.command, args: cmdNode.args };
       }
       case 'branch':
         return { type: 'showBranch', node: this.currentNode };
@@ -106,7 +103,7 @@ export class VNEngine {
   }
 
   choose(index: number): RenderInstruction | null {
-    if (this.currentNode?.type !== 'choice') return null;
+  if (this.currentNode?.type !== 'choice') return null;
     const option = this.currentNode.options[index];
     if (!option) return null;
     this.currentNode = this.findNodeById(option.next);
@@ -120,6 +117,15 @@ export class VNEngine {
       const result = this.evalCondition(branch.condition);
       this.currentNode = this.findNodeById(result ? branch.trueNext : branch.falseNext);
       return this.advance();
+    }
+    if (this.currentNode.type === 'command') {
+      const cmdNode = this.currentNode as CommandNode;
+      // After emitting runCommand, advance to next if exists
+      if (cmdNode.next) {
+        this.currentNode = this.findNodeById(cmdNode.next);
+        return this.advance();
+      }
+      return null;
     }
     if (!this.currentNode.next) return null;
     this.currentNode = this.findNodeById(this.currentNode.next);

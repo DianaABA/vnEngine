@@ -47,47 +47,60 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, saveSlot = "slot1" }
 
   if (!instruction) return <div>Game Over or Invalid Script</div>;
 
-  switch (instruction.type) {
-    case "showDialogue": {
-      const node = instruction.node as DialogueNode;
-      return (
-        <div>
-          <div><strong>{node.speaker || "Narrator"}</strong></div>
-          <div>{node.text}</div>
-          <button onClick={handleNext}>Next</button>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={handleLoad}>Load</button>
-        </div>
-      );
+  if ('type' in instruction) {
+    switch (instruction.type) {
+      case "showDialogue": {
+        const node = instruction.node as DialogueNode;
+        return (
+          <div>
+            <div><strong>{node.speaker || "Narrator"}</strong></div>
+            <div>{node.text}</div>
+            <button onClick={handleNext}>Next</button>
+            <button onClick={handleSave}>Save</button>
+            <button onClick={handleLoad}>Load</button>
+          </div>
+        );
+      }
+      case "showChoices": {
+        const node = instruction.node as ChoiceNode;
+        return (
+          <div>
+            <div>Choose:</div>
+            {node.options.map((opt, idx) => (
+              <button key={opt.id} onClick={() => handleChoose(idx)}>{opt.text}</button>
+            ))}
+            <button onClick={handleSave}>Save</button>
+            <button onClick={handleLoad}>Load</button>
+          </div>
+        );
+      }
+      case "showCommand": {
+        // For demo, just show command type
+        return (
+          <div>
+            <div>Command: {(instruction as any).node.command}</div>
+            <button onClick={handleNext}>Next</button>
+            <button onClick={handleSave}>Save</button>
+            <button onClick={handleLoad}>Load</button>
+          </div>
+        );
+      }
+      case "showEnd": {
+        return <div>End of Scene</div>;
+      }
+      default:
+        return <div>Unknown instruction</div>;
     }
-    case "showChoices": {
-      const node = instruction.node as ChoiceNode;
-      return (
-        <div>
-          <div>Choose:</div>
-          {node.options.map((opt, idx) => (
-            <button key={opt.id} onClick={() => handleChoose(idx)}>{opt.text}</button>
-          ))}
-          <button onClick={handleSave}>Save</button>
-          <button onClick={handleLoad}>Load</button>
-        </div>
-      );
-    }
-    case "showCommand": {
-      // For demo, just show command type
-      return (
-        <div>
-          <div>Command: {(instruction as any).node.command}</div>
-          <button onClick={handleNext}>Next</button>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={handleLoad}>Load</button>
-        </div>
-      );
-    }
-    case "showEnd": {
-      return <div>End of Scene</div>;
-    }
-    default:
-      return <div>Unknown instruction</div>;
+  } else if (instruction.kind === "runCommand") {
+    // Handle runCommand instructions (dispatcher logic can be added here)
+    return (
+      <div>
+        <div>Run Command: {instruction.command}</div>
+        <pre>{JSON.stringify(instruction.args, null, 2)}</pre>
+        <button onClick={handleNext}>Continue</button>
+      </div>
+    );
+  } else {
+    return <div>Unknown instruction</div>;
   }
 };
