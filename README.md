@@ -190,22 +190,25 @@ sequenceDiagram
 # VNEngine Monorepo Milestone Summary & Roadmap
 
 ## 1. Core Modules Status
-- ✅ Core engine (`VNEngine`, node system, snapshot/save)
-- ✅ Script loader (JSON + DSL stubs, Zod schema)
-- ✅ Renderer-web (React VNPlayer, GameCanvas, assets integration)
-- ✅ Storage adapter (SaveAdapter, LocalStorageAdapter)
-- ✅ Demo app (web example, GameCanvas, VNPlayer)
+- ✅ Core engine (`NodeVNEngine`): node graph traversal (next/proceed/choose), instruction stream, snapshots
+- ✅ Script package: JSON schema + types; DSL stubs present
+- ✅ Renderer-web (`VNPlayer`): React renderer aligned to engine pull API; dialogue, choices, runCommand, end
+- ✅ Storage (local adapters): basic slot-based save/load
+- ✅ Tests: core engine traversal/branching/commands covered by vitest
+- ✅ New clean app: `apps/chakrahearts-zero` minimal smoke test (Vite)
+- ☑️ Author app prototype: Vite-based playground (work-in-progress)
+- ☑️ Assets/ports: background/sprites/audio ports wired with basic handlers; transitions/effects TBD
 
 ## 2. Progress Checklist
 - ✅ Core engine: modular, node-based, snapshot/hydrate
-- ✅ Script loader: JSON, DSL stub, schema validation
-- ✅ Renderer-web: dialogue, choices, commands, assets, keyboard UX
-- ✅ Storage: slot-based save/load, local adapter
-- ✅ Demo: playable web scene, UI integration
-- ❌ Commands system: full bg/music/flags/port abstraction
-- ❌ Native portability: React Native port, AsyncStorageAdapter
-- ❌ Authoring tools: split-pane editor, live preview, DSL parser
-- ❌ Advanced tests: branching, integrity, error reporting
+- ✅ Script: JSON schema/types, validators; DSL scaffolding
+- ✅ Renderer-web: dialogue, choices, runCommand dispatch; keyboard UX
+- ✅ Smoke tests: `chakrahearts-zero` app exercises core loop
+- ☑️ Ports: bg/sprite/audio interfaces defined; web impl basic (no transitions yet)
+- ☑️ Storage: local adapters ok; cross-platform adapters pending
+- ☑️ Authoring: prototype app exists; parser/editor features in progress
+- ❌ Native portability: RN renderer + AsyncStorage adapter
+- ❌ Advanced tests: long-form branching, integrity, error reporting CI
 
 ## 3. Minimal Test Scenes & CI Checks
 - Test scenes:
@@ -217,18 +220,29 @@ sequenceDiagram
 	- Tests: `npx vitest run`
 
 ## 4. Release Roadmap
-- **v0.1.0**: Playable demo, save/load, basic branching
-- **v0.2.0**: Full commands system (background, music, flags, port abstraction)
-- **v0.3.0**: Authoring tools (split-pane editor, DSL parser, live preview)
-- **v0.4.0**: React Native port prototype, AsyncStorageAdapter
+- 0.1.0 (current): Core engine + web renderer playable; save/load; basic branching; zero app
+- 0.2.0: Ports polish (bg transitions, sprite layers/positions, WebAudio fades/looping), flags API, error surfaces
+- 0.3.0: Authoring tools (split-pane editor, DSL parser MVP, live preview + validator)
+- 0.4.0: React Native renderer, AsyncStorage adapter; storage abstractions unified
 
 ## 5. Architecture & Contribution Workflow
 
 ### Architecture Overview
-- **Core**: Modular VN engine, node system, script loader, snapshot/save API
-- **Renderer**: Platform-specific UI (web, native), asset and command ports
-- **Storage**: Abstract save/load adapters (local, async, etc.)
-- **Authoring**: Tools for script editing, validation, preview
+- Core (engine)
+	- `NodeVNEngine` exposes a pull-based loop: `next()` → instruction; renderer handles then calls `proceed()` or `choose(id)`.
+	- Instructions include: `showDialogue`, `showChoices`, `runCommand`, `showBranch`, `end`.
+	- Snapshot/hydrate for save/load.
+- Renderer (web)
+	- `VNPlayer` React component renders the instruction stream.
+	- Dispatches `runCommand` to platform ports and then calls `engine.proceed()`.
+- Ports
+	- Background, Sprites, Audio ports define minimal contracts; web implementations are basic and ready to extend (transitions/effects pending).
+- Script
+	- JSON schema/types for `GameScript`; DSL parser stubs and validators.
+- Storage
+	- Local slot-based adapters; async/native adapters planned.
+- Apps
+	- `web-demo`, `author` prototype, and `chakrahearts-zero` smoke test.
 
 ### Contribution Workflow
 1. Fork & clone repo, install dependencies (`npm install`)
@@ -242,10 +256,13 @@ sequenceDiagram
 A scalable, modular Visual Novel engine built with React, TypeScript, and Turborepo monorepo structure.
 
 ## Features
-- Modular engine core
-- Scene, dialogue, choice, save/load systems
-- Platform-agnostic logic
-- Demo web app
+- Node-based engine core with pull API (next/proceed/choose)
+- Dialogue, choices, command dispatch, branching
+- Background/Sprites/Audio ports (web impl basic; extensible)
+- Snapshot/save/load support
+- JSON script format with schema/types; DSL scaffolding
+- React web renderer (`VNPlayer`)
+- Example apps: webpack demo, author prototype, and chakrahearts-zero
 
 ## Getting Started
 See the monorepo structure and packages for usage examples.
