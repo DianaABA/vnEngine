@@ -4,8 +4,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@vn/core": ["../../packages/core/dist/src/index.d.ts"],
-      "@vn/renderer-web": ["../../packages/renderer-web/dist/index.d.ts"]
+      "@vn/core": ["../../packages/core/dist/src"],
+      "@vn/renderer-web": ["../../packages/renderer-web/dist"]
     }
   },
   "include": ["src"]
