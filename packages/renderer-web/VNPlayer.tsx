@@ -35,6 +35,11 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const skipLoopRef = useRef<boolean>(false);
   // Save thumb cache to avoid async races
   const thumbCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Typewriter
+  const [typewriter, setTypewriter] = useState<boolean>(true);
+  const [textSpeed, setTextSpeed] = useState<number>(1); // 0.5x..3x
+  const [visibleText, setVisibleText] = useState<string>('');
+  const typeTimerRef = useRef<number | null>(null);
 
   // Initialize first instruction
   useEffect(() => {
@@ -49,9 +54,17 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
 
   const handleNext = useCallback(() => {
     if (busy) return;
+    // If typewriter is active and not fully revealed, complete instantly instead of proceed
+    if (instruction?.kind === 'showDialogue' && typewriter) {
+      const node = instruction as any;
+      if (visibleText.length < (node.text?.length ?? 0)) {
+        setVisibleText(String(node.text || ''));
+        return;
+      }
+    }
     const instr = engine.proceed();
     setInstruction(instr);
-  }, [engine]);
+  }, [engine, instruction, typewriter, visibleText, busy]);
 
   const handleChoice = useCallback((index: number) => {
     if (busy) return;
@@ -234,9 +247,12 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     if (!instruction || instruction.kind !== 'showDialogue') return;
     if (busy) return;
     const node = instruction as any;
-    const base = 1200; // ms
-    const perChar = 35; // ms per char
-    const delay = Math.max(500, (base + perChar * (node.text?.length ?? 0)) / Math.max(0.25, Math.min(3, autoSpeed)));
+    // If typewriter is enabled, delay scales with remaining characters and respects textSpeed
+    const base = 600; // ms min hold
+    const perChar = 25; // ms per char
+    const remaining = typewriter ? Math.max(0, (node.text?.length ?? 0) - visibleText.length) : (node.text?.length ?? 0);
+    const delayRaw = base + perChar * remaining;
+    const delay = Math.max(300, delayRaw / Math.max(0.25, Math.min(3, autoSpeed * textSpeed)));
     autoTimerRef.current = window.setTimeout(() => {
       handleNext();
     }, delay);
@@ -244,7 +260,45 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       if (autoTimerRef.current) window.clearTimeout(autoTimerRef.current);
       autoTimerRef.current = null;
     };
-  }, [auto, autoSpeed, instruction, busy, backlogOpen, handleNext]);
+  }, [auto, autoSpeed, instruction, busy, backlogOpen, handleNext, typewriter, visibleText, textSpeed]);
+
+  // Typewriter effect per dialogue
+  useEffect(() => {
+    // Clear any previous timer
+    if (typeTimerRef.current) {
+      window.clearInterval(typeTimerRef.current);
+      typeTimerRef.current = null;
+    }
+    if (!instruction || instruction.kind !== 'showDialogue') {
+      setVisibleText('');
+      return;
+    }
+    const node = instruction as any;
+    const full = String(node.text || '');
+    if (!typewriter) {
+      setVisibleText(full);
+      return;
+    }
+    setVisibleText('');
+    if (skip) {
+      setVisibleText(full);
+      return;
+    }
+    const msPerChar = 40 / Math.max(0.25, Math.min(3, textSpeed));
+    let i = 0;
+    typeTimerRef.current = window.setInterval(() => {
+      i += 1;
+      setVisibleText(full.slice(0, i));
+      if (i >= full.length) {
+        if (typeTimerRef.current) window.clearInterval(typeTimerRef.current);
+        typeTimerRef.current = null;
+      }
+    }, msPerChar);
+    return () => {
+      if (typeTimerRef.current) window.clearInterval(typeTimerRef.current);
+      typeTimerRef.current = null;
+    };
+  }, [instruction, typewriter, textSpeed, skip]);
 
   // Skip loop: fast-forward to next choice or end
   useEffect(() => {
@@ -400,6 +454,11 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         <span>Speed</span>
         <input type="range" min={0.5} max={3} step={0.25} value={autoSpeed} onChange={e => setAutoSpeed(parseFloat(e.target.value))} />
       </label>
+      <button className={`px-3 py-1 ${typewriter ? 'bg-purple-700' : 'bg-gray-800/70'} text-white rounded`} onClick={() => setTypewriter(t => !t)} aria-label="Typewriter">Type</button>
+      <label className="px-2 py-1 bg-gray-800/70 text-white rounded flex items-center gap-1" aria-label="Text Speed">
+        <span>Text</span>
+        <input type="range" min={0.5} max={3} step={0.25} value={textSpeed} onChange={e => setTextSpeed(parseFloat(e.target.value))} />
+      </label>
       <button className={`px-3 py-1 ${skip ? 'bg-green-700' : 'bg-gray-800/70'} text-white rounded`} onClick={() => setSkip(s => !s)} aria-label="Skip">Skip</button>
       <button className="px-3 py-1 bg-gray-800/70 text-white rounded" onClick={handleSave} aria-label="Save">Save</button>
       <button className="px-3 py-1 bg-gray-800/70 text-white rounded" onClick={handleLoad} aria-label="Load">Load</button>
@@ -437,7 +496,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
           {BacklogPanel}
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold" aria-label="Speaker">{node.speaker || 'Narrator'}</div>
-            <div className="mt-2" aria-label="Dialogue">{node.text}</div>
+            <div className="mt-2" aria-label="Dialogue">{typewriter ? visibleText : node.text}</div>
             <button className="mt-4 px-4 py-2 bg-blue-600 rounded focus:outline-none focus:ring" onClick={handleNext} aria-label="Next">Next</button>
           </div>
         </div>
