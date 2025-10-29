@@ -40,6 +40,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [pendingChoiceTimer, setPendingChoiceTimer] = useState<{ timeoutMs: number; defaultIndex?: number } | null>(null);
   const [choiceDeadline, setChoiceDeadline] = useState<number | null>(null);
   const choiceTimerRef = useRef<number | null>(null);
+  // For countdown ring animation
+  const [nowTs, setNowTs] = useState<number>(Date.now());
   // Typewriter
   const [typewriter, setTypewriter] = useState<boolean>(true);
   const [textSpeed, setTextSpeed] = useState<number>(1); // 0.5x..3x
@@ -376,6 +378,24 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     };
   }, [instruction, pendingChoiceTimer, handleChoice]);
 
+  // Animate countdown ring while a timed choice is active
+  useEffect(() => {
+    if (!instruction || instruction.kind !== 'showChoices') return;
+    if (!pendingChoiceTimer || !choiceDeadline) return;
+    let raf: number | null = null;
+    let stop = false;
+    const tick = () => {
+      if (stop) return;
+      setNowTs(Date.now());
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      stop = true;
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [instruction, pendingChoiceTimer, choiceDeadline]);
+
   const instructionRef = useRef<RenderInstruction | null>(null);
   const busyRef = useRef<boolean>(false);
   useEffect(() => { instructionRef.current = instruction; }, [instruction]);
@@ -557,6 +577,13 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     case 'showChoices': {
       const node = instruction as any;
       const choices = (node.choices as Array<{ text: string; index: number }>) || [];
+      // Countdown ring geometry
+      const radius = 16;
+      const circumference = 2 * Math.PI * radius;
+      const totalMs = pendingChoiceTimer?.timeoutMs ?? 0;
+      const remainMs = choiceDeadline ? Math.max(0, choiceDeadline - nowTs) : 0;
+      const frac = totalMs > 0 ? Math.max(0, Math.min(1, remainMs / totalMs)) : 0;
+      const dashOffset = circumference * (1 - frac);
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4 relative">
           <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} camera={bgCamera} />
@@ -567,7 +594,24 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
               {pendingChoiceTimer && choiceDeadline && (
-                <div className="text-xs opacity-80 mb-2">Auto-selecting in {Math.max(0, Math.ceil((choiceDeadline - Date.now())/1000))}s</div>
+                <div className="flex items-center gap-2 text-xs opacity-90 mb-2">
+                  <svg width="40" height="40" viewBox="0 0 40 40" aria-label="Countdown">
+                    <circle cx="20" cy="20" r={radius} stroke="#333" strokeWidth="4" fill="none" />
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r={radius}
+                      stroke="#10B981"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      strokeLinecap="round"
+                      transform="rotate(-90 20 20)"
+                    />
+                  </svg>
+                  <span>Auto-selecting in {Math.max(0, Math.ceil(remainMs/1000))}s</span>
+                </div>
               )}
             {choices.map((choice, i) => (
               <button key={`${i}-${choice.text}`} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(choice.index)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
