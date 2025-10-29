@@ -178,6 +178,41 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         case 'setFlag':
           setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
           break;
+        case 'wait': {
+          const ms = Math.max(0, Number((args as any)?.ms ?? (args as any)?.durationMs ?? 0));
+          setBusy(true);
+          setTimeout(() => {
+            setBusy(false);
+            const next = engine.proceed();
+            setInstruction(next);
+          }, ms);
+          return;
+        }
+        case 'changeScene': {
+          const a = args as any;
+          if (a?.sceneId) {
+            try { (engine as any).changeScene(a.sceneId, a.nodeId); } catch (e) { console.error(e); }
+          }
+          const next = engine.proceed();
+          setInstruction(next);
+          return;
+        }
+        case 'shakeBackground': {
+          const a = args as any;
+          const duration = Math.max(0, Number(a?.durationMs ?? 300));
+          const intensity = Math.max(0, Number(a?.intensity ?? 6));
+          setBgTransition((t) => t); // no-op to keep type
+          // Use a custom event via window to tell Background to shake (simplify without prop drilling state changes)
+          const evt = new CustomEvent('vn_bg_shake', { detail: { durationMs: duration, intensity } });
+          window.dispatchEvent(evt);
+          setBusy(true);
+          setTimeout(() => {
+            setBusy(false);
+            const next = engine.proceed();
+            setInstruction(next);
+          }, duration);
+          return;
+        }
         default:
           break;
       }

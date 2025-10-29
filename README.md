@@ -230,6 +230,9 @@ export default function App() {
 | playMusic      | { name: 'playMusic', idOrUrl: string, loop?: boolean }  | Play music/audio      | AudioPort   |
 | stopMusic      | { name: 'stopMusic', id?: string }                      | Stop music/audio      | AudioPort   |
 | setFlag        | { name: 'setFlag', key: string, value: boolean }        | Set engine flag       | Renderer    |
+| wait           | { name: 'wait', ms: number }                            | Pause before proceed  | Renderer    |
+| changeScene    | { name: 'changeScene', sceneId: string, nodeId?: string } | Switch scene & jump | Renderer→Engine |
+| shakeBackground| { name: 'shakeBackground', durationMs: number, intensity?: number } | Shake camera/bg | Renderer    |
 
 ## Sequence Diagram
 

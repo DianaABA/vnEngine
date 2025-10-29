@@ -14,6 +14,38 @@ export const Background: React.FC<{
   const timeoutRef = useRef<number | null>(null);
   const rafRef = useRef<number | null>(null);
   const [currTransform, setCurrTransform] = useState<string>('translate(0,0)');
+  const [shakeOffset, setShakeOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Listen for shake requests
+  useEffect(() => {
+    let stop = false;
+    let raf: number | null = null;
+    const onShake = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { durationMs: number; intensity: number };
+      const start = performance.now();
+      const loop = () => {
+        if (stop) return;
+        const now = performance.now();
+        const t = now - start;
+        if (t >= detail.durationMs) {
+          setShakeOffset({ x: 0, y: 0 });
+          return;
+        }
+        const ix = (Math.random() * 2 - 1) * detail.intensity;
+        const iy = (Math.random() * 2 - 1) * detail.intensity;
+        setShakeOffset({ x: ix, y: iy });
+        raf = requestAnimationFrame(loop);
+      };
+      if (raf) cancelAnimationFrame(raf);
+      loop();
+    };
+    window.addEventListener('vn_bg_shake', onShake as any);
+    return () => {
+      stop = true;
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('vn_bg_shake', onShake as any);
+    };
+  }, []);
 
   useEffect(() => {
     const clearTimers = () => {
@@ -66,7 +98,7 @@ export const Background: React.FC<{
           src={currSrc}
           alt="Background"
           className="object-cover w-full h-full absolute inset-0"
-          style={{ opacity: visible.curr ? 1 : 0, transform: currTransform, transition: `opacity ${duration} linear, transform ${duration} ease` }}
+          style={{ opacity: visible.curr ? 1 : 0, transform: `${currTransform} translate(${shakeOffset.x}px, ${shakeOffset.y}px)`, transition: `opacity ${duration} linear, transform ${duration} ease` }}
         />
       ) : (
         <div className="bg-gray-900 w-full h-full" />

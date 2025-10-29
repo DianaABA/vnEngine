@@ -15,7 +15,7 @@ export type NodeID = string;
 export type DialogueNode = { type: 'dialogue'; id: NodeID; speaker?: string; text: string; next?: NodeID };
 export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string }> };
 export type BranchNode   = { type: 'branch';   id: NodeID; condition: string; then: NodeID; else?: NodeID };
-export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'; args?: Record<string, unknown>; next?: NodeID };
+export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'wait'|'changeScene'|'shakeBackground'; args?: Record<string, unknown>; next?: NodeID };
 export type EndNode      = { type: 'end';      id: NodeID };
 
 export type VNNode = DialogueNode | ChoiceNode | BranchNode | CommandNode | EndNode;
@@ -114,6 +114,22 @@ export class VNEngine {
     if (node.type === 'branch') {
       this.mode = EngineMode.Idle; // so next next() emits showBranch
     }
+  }
+
+  changeScene(sceneId: string, nodeId?: NodeID) {
+    if (!this.script.scenes[sceneId]) throw new Error(`Unknown scene '${sceneId}'`);
+    this.state.sceneId = sceneId;
+    this.currentSceneRef = this.script.scenes[sceneId];
+  const declaredStart = (this.script.scenes[sceneId] as any).start as NodeID | undefined;
+  const startNode = nodeId ?? declaredStart;
+    if (!startNode || !this.currentSceneRef.nodes[startNode]) {
+      const keys = Object.keys(this.currentSceneRef.nodes);
+      if (!keys.length) throw new Error(`Scene '${sceneId}' has no nodes`);
+      this.state.nodeId = keys[0];
+    } else {
+      this.state.nodeId = startNode;
+    }
+    this.mode = EngineMode.Idle;
   }
 
   choose(index: number): RenderInstruction {
