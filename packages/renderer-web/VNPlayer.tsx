@@ -15,7 +15,7 @@ export interface VNPlayerProps {
 
 export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [instruction, setInstruction] = useState<RenderInstruction | null>(null);
-  const [, setFlags] = useState<Record<string, boolean>>({});
+  // deprecated local flags state (engine now owns flags/vars via setFlag/setVar)
   const [bgKey, setBgKey] = useState<string>('');
   const [prevBgKey, setPrevBgKey] = useState<string | undefined>(undefined);
   const [bgTransition, setBgTransition] = useState<{ type: 'fade' | 'crossfade' | 'slide'; durationMs: number; direction?: 'left'|'right'|'up'|'down' } | undefined>(undefined);
@@ -195,9 +195,16 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
             setAudioCmd({ action: 'stop', fadeOutMs: a?.fadeOutMs });
           }
           break;
-        case 'setFlag':
-          setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
+        case 'setFlag': {
+          const a = args as any;
+          try { (engine as any).setFlag?.(a.key, a.value); } catch {}
           break;
+        }
+        case 'setVar': {
+          const a = args as any;
+          try { (engine as any).setVar?.(a.key, a.value); } catch {}
+          break;
+        }
         case 'camera': {
           const a = args as any;
           const duration = Math.max(0, Number(a?.durationMs ?? 0));

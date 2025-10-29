@@ -15,7 +15,7 @@ export type NodeID = string;
 export type DialogueNode = { type: 'dialogue'; id: NodeID; speaker?: string; text: string; next?: NodeID };
 export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string; visibleIf?: string; enabledIf?: string }> };
 export type BranchNode   = { type: 'branch';   id: NodeID; condition: string; then: NodeID; else?: NodeID };
-export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'wait'|'changeScene'|'shakeBackground'|'camera'|'choiceTimer'; args?: Record<string, unknown>; next?: NodeID };
+export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'setVar'|'wait'|'changeScene'|'shakeBackground'|'camera'|'choiceTimer'; args?: Record<string, unknown>; next?: NodeID };
 export type EndNode      = { type: 'end';      id: NodeID };
 
 export type VNNode = DialogueNode | ChoiceNode | BranchNode | CommandNode | EndNode;
@@ -126,6 +126,14 @@ export class VNEngine implements EngineContract {
     const node = this.currentNode();
     if (node.type === 'branch') {
       this.mode = EngineMode.Idle; // so next next() emits showBranch
+    }
+  }
+
+  setVar(key: string, value: unknown) {
+    this.state.vars[key] = value as any;
+    const node = this.currentNode();
+    if (node.type === 'branch') {
+      this.mode = EngineMode.Idle;
     }
   }
 
@@ -254,11 +262,85 @@ export class VNEngine implements EngineContract {
   }
 
   private eval(expr: string): boolean {
-    // simple flags truthiness with !negation
-    const t = expr.trim();
+    // Supports:
+    //  - Truthiness: flag or var name
+    //  - Negation: !name
+    //  - Comparisons: name == value | != | > | >= | < | <= (numeric compare if both numeric)
+    //  - Logical AND/OR: a && b, a || b (no parentheses)
+    const t = (expr ?? '').trim();
     if (!t) return false;
-    if (t.startsWith('!')) return !Boolean(this.state.flags[t.slice(1)]);
-    return Boolean(this.state.flags[t]);
+
+    const evalValue = (name: string): unknown => {
+      if (name in this.state.flags) return this.state.flags[name];
+      if (name in this.state.vars) return (this.state.vars as any)[name];
+      return undefined;
+    };
+    const toNum = (v: unknown): number | null => {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string' && /^-?\d+(?:\.\d+)?$/.test(v.trim())) return parseFloat(v);
+      return null;
+    };
+    const parseLiteral = (s: string): unknown => {
+      const v = s.trim();
+      if (/^".*"$/.test(v) || /^'.*'$/.test(v)) return v.slice(1, -1);
+      const n = toNum(v);
+      if (n !== null) return n;
+      if (v === 'true') return true;
+      if (v === 'false') return false;
+      // fallback: variable or flag value
+      return evalValue(v);
+    };
+
+    const evalAtomic = (s: string): boolean => {
+      const str = s.trim();
+      if (!str) return false;
+      // Negation without operator
+      if (str.startsWith('!') && !/[=<>]/.test(str)) {
+        const name = str.slice(1).trim();
+        return !Boolean(evalValue(name));
+      }
+      // Comparison
+      const m = str.match(/^(.*?)\s*(==|!=|>=|<=|>|<)\s*(.*)$/);
+      if (m) {
+        const lhsName = m[1].trim();
+        const op = m[2];
+        const rhsRaw = m[3];
+        const lhsVal = evalValue(lhsName);
+        const rhsVal = parseLiteral(rhsRaw);
+        const ln = toNum(lhsVal);
+        const rn = toNum(rhsVal as any);
+        if (ln !== null && rn !== null) {
+          switch (op) {
+            case '==': return ln === rn;
+            case '!=': return ln !== rn;
+            case '>': return ln > rn;
+            case '>=': return ln >= rn;
+            case '<': return ln < rn;
+            case '<=': return ln <= rn;
+          }
+        } else {
+          // String/boolean compare using strict equality for ==/!=; other ops false
+          switch (op) {
+            case '==': return (lhsVal as any) === (rhsVal as any);
+            case '!=': return (lhsVal as any) !== (rhsVal as any);
+            default: return false;
+          }
+        }
+      }
+      // Bare name truthiness
+      return Boolean(evalValue(str));
+    };
+
+    const orParts = t.split(/\|\|/);
+    for (const part of orParts) {
+      const andParts = part.split(/&&/);
+      let ok = true;
+      for (const a of andParts) {
+        if (!evalAtomic(a)) { ok = false; break; }
+      }
+      if (ok) return true;
+    }
+    return false;
   }
 
   /** Return instruction for current node without consuming its 'next' */
