@@ -27,13 +27,25 @@ export type RenderInstruction =
   | { kind: 'showBranch' }
   | { kind: 'end' };
 
-type Snapshot = {
+export type Snapshot = {
   sceneId: string;
   nodeId: NodeID;
   flags: Record<string, boolean | number | string>;
   vars: Record<string, unknown>;
   history: Array<{ sceneId: string; nodeId: NodeID }>;
 };
+
+// Public engine contract consumed by renderers
+/* eslint-disable no-unused-vars */
+export interface EngineContract {
+  readonly snapshot: Snapshot;
+  hydrate: (snap: Snapshot) => void;
+  next: () => RenderInstruction;
+  proceed: () => RenderInstruction;
+  choose: (index: number) => RenderInstruction;
+  changeScene: (sceneId: string, nodeId?: NodeID) => void;
+}
+/* eslint-enable no-unused-vars */
 
 /** Internal traversal state flags */
 const EngineMode = {
@@ -43,7 +55,7 @@ const EngineMode = {
 } as const;
 type EngineMode = typeof EngineMode[keyof typeof EngineMode];
 
-export class VNEngine {
+export class VNEngine implements EngineContract {
   private script: { scenes: Record<string, { id: string; start: NodeID; nodes: Record<NodeID, VNNode> }>; startScene: string };
   private state: Snapshot;
   private mode: EngineMode = EngineMode.Idle;

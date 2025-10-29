@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { NodeVNEngine as VNEngine, RenderInstruction } from '@vn/core';
+import { EngineContract, RenderInstruction } from '@vn/core';
 import { Background } from './Background';
 import { Sprites } from './Sprites';
 import { AudioPlayer } from './AudioPlayer';
 
 export interface VNPlayerProps {
-  engine: VNEngine;
+  engine: EngineContract;
   assets: {
     backgrounds?: Record<string, string>;
     sprites?: Record<string, string>;

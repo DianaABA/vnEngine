@@ -11,7 +11,9 @@ export type {
   ChoiceNode,
   CommandNode,
   EndNode,
-  NodeID
+  NodeID,
+  Snapshot,
+  EngineContract
 } from './vnEngineNodeSystem';
 export * from './ports';
 export * from './snapshot';

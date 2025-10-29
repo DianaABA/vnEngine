@@ -31,8 +31,7 @@ export function App() {
   const assets = useMemo(() => ({ backgrounds: {}, sprites: {}, audio: {} }), []);
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#111', color: '#fff' }}>
-      {/* Cast to satisfy renderer-web's nominal class type in d.ts */}
-      <VNPlayer engine={engine as any} assets={assets} />
+      <VNPlayer engine={engine} assets={assets} />
     </div>
   );
 }
