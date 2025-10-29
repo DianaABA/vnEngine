@@ -4,12 +4,157 @@ Quickstart
 
 - Requirements: Node.js 18+ and npm 8+.
 - Install deps: npm install
-- Run the demo web app: npm start (opens http://localhost:8080)
-- Run the author app: npm run dev -w apps/author (Vite on http://localhost:5173)
+- Build engine packages (core + renderer): npm run build:packages
 - Run tests: npm test
 - Typecheck all packages: npm run typecheck
+- Run the demo web app (webpack): npm start (http://localhost:8080)
+- Run the author app (Vite): npm run dev -w apps/author (http://localhost:5173)
+- Run the clean smoke test app (Vite): npm run dev:zero (http://localhost:3100)
 
 You can also use VS Code: F5 on “Launch Web App (webpack)” or “Launch Author App (Vite)”. Tasks for build, test, lint, and typecheck are included in .vscode/tasks.json.
+
+---
+
+## Monorepo Overview
+
+Packages (consumable):
+- `@vn/core` – Engine: node graph traversal (next/proceed/choose), instruction stream, flags, and snapshots.
+- `@vn/renderer-web` – React VNPlayer that renders a `GameScript` via the engine, dispatching `runCommand` to platform ports.
+
+Apps (for demos and tooling):
+- `apps/web-demo` – Legacy demo using webpack.
+- `apps/author` – Authoring UI prototype (Vite).
+- `apps/chakrahearts-zero` – Minimal clean app to smoke test engine + renderer end-to-end.
+
+---
+
+## Install and Build
+
+1) Install dependencies
+
+```powershell
+npm install
+```
+
+2) Build engine packages (creates `packages/*/dist`)
+
+```powershell
+npm run build:packages
+```
+
+3) Run tests and typecheck
+
+```powershell
+npm test
+npm run typecheck
+```
+
+---
+
+## Run the Example Apps
+
+- Demo (webpack):
+
+```powershell
+npm start
+```
+
+Opens http://localhost:8080
+
+- Author app (Vite):
+
+```powershell
+npm run dev -w apps/author
+```
+
+Opens http://localhost:5173
+
+- ChakraHearts Zero smoke test (Vite):
+
+```powershell
+npm run dev:zero
+```
+
+Opens http://localhost:3100 and shows a tiny script: two dialogue lines → a choice → end. This is ideal for verifying engine upgrades quickly.
+
+---
+
+## Using the Engine in Your App (local dev)
+
+Until packages are published, you can consume them locally from this repo:
+
+1) Build the packages here (once):
+
+```powershell
+cd path\to\vnEngine
+npm install
+npm run build:packages
+```
+
+2) In your app’s `package.json`, add local file deps:
+
+```json
+{
+	"dependencies": {
+		"@vn/core": "file:../vnEngine/packages/core",
+		"@vn/renderer-web": "file:../vnEngine/packages/renderer-web"
+	}
+}
+```
+
+3) If you use Vite + TS, add aliases/paths pointing at the package folders (so dev mode resolves sources) and rely on built `dist` types:
+
+- Vite `resolve.alias`:
+
+```ts
+import path from 'node:path'
+export default {
+	resolve: {
+		alias: {
+			'@vn/core': path.resolve(__dirname, '../vnEngine/packages/core'),
+			'@vn/renderer-web': path.resolve(__dirname, '../vnEngine/packages/renderer-web')
+		}
+	}
+}
+```
+
+- TS `paths` (to types generated in `dist`):
+
+```json
+{
+	"compilerOptions": {
+		"paths": {
+			"@vn/core": ["../vnEngine/packages/core/dist/src/index.d.ts"],
+			"@vn/renderer-web": ["../vnEngine/packages/renderer-web/dist/index.d.ts"]
+		}
+	}
+}
+```
+
+4) Use the React renderer in your app:
+
+```tsx
+import { VNPlayer } from '@vn/renderer-web'
+import type { GameScript } from '@vn/core'
+
+const script: GameScript = {
+	scenes: [
+		{
+			id: 'intro',
+			nodes: {
+				start: { id: 'start', kind: 'dialogue', speaker: 'Ava', text: 'Hello!', next: 'end' },
+				end: { id: 'end', kind: 'end' }
+			},
+			start: 'start'
+		}
+	],
+	startScene: 'intro'
+}
+
+export default function App() {
+	return <VNPlayer script={script} />
+}
+```
 
 ---
 

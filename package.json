@@ -13,7 +13,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build:packages": "npm run -w @vn/core build && npm run -w @vn/renderer-web build",
+    "dev:zero": "npm run -w chakrahearts-zero dev"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",
