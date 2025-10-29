@@ -104,6 +104,33 @@ Opens http://localhost:3100 and shows a tiny script: two dialogue lines → a ch
 
 ---
 
+## Renderer-Web Player Controls
+
+The React renderer (`@vn/renderer-web` → `VNPlayer`) includes built-in UX helpers:
+
+- Backlog: Shows previous dialogue lines
+	- UI: Backlog button (top-right)
+	- Shortcut: B
+- Auto: Auto-advance dialogue after a short delay proportional to text length
+	- UI: Auto toggle + Speed slider (0.5x–3x)
+	- Shortcut: A
+	- Behavior: Pauses on choices and during visual transitions
+- Skip: Fast-forward to the next choice (or end)
+	- UI: Skip toggle
+	- Shortcut: S
+	- Behavior: Skips non-choice dialogue/commands; stops at choices/end and honors transitions
+- Quick Save/Load: A single quick slot that stores engine snapshot + a thumbnail
+	- UI: Save / Load buttons
+	- Storage: localStorage key `vn_quick_slot_1`
+	- Thumbnail: 320x180 image generated from background and current dialogue overlay
+
+Visual transitions (web):
+- Background: fade, crossfade, slide (left/right/up/down) with duration
+- Sprites: fade-in for new sprites and smooth move updates when re-showing the same id
+- Audio: fade in/out on play/stop
+
+---
+
 ## Using the Engine in Your App (local dev)
 
 Until packages are published, you can consume them locally from this repo:
@@ -230,14 +257,14 @@ sequenceDiagram
 - ✅ Tests: core engine traversal/branching/commands covered by vitest
 - ✅ New clean app: `apps/chakrahearts-zero` minimal smoke test (Vite)
 - ☑️ Author app prototype: Vite-based playground (work-in-progress)
-- ☑️ Assets/ports: background/sprites/audio ports wired with basic handlers; transitions/effects TBD
+- ✅ Assets/ports: background/sprites/audio ports wired with handlers; web adds fade/crossfade/slide + sprite fade/move + audio fades
 
 ## 2. Progress Checklist
 - ✅ Core engine: modular, node-based, snapshot/hydrate
 - ✅ Script: JSON schema/types, validators; DSL scaffolding
 - ✅ Renderer-web: dialogue, choices, runCommand dispatch; keyboard UX
 - ✅ Smoke tests: `chakrahearts-zero` app exercises core loop
-- ☑️ Ports: bg/sprite/audio interfaces defined; web impl basic (no transitions yet)
+- ✅ Ports: bg/sprite/audio interfaces defined; web impl adds transitions (bg fade/crossfade/slide, sprite fade/move, audio fades)
 - ☑️ Storage: local adapters ok; cross-platform adapters pending
 - ☑️ Authoring: prototype app exists; parser/editor features in progress
 - ❌ Native portability: RN renderer + AsyncStorage adapter
@@ -254,7 +281,8 @@ sequenceDiagram
 
 ## 4. Release Roadmap
 - 0.1.0 (current): Core engine + web renderer playable; save/load; basic branching; zero app
-- 0.2.0: Ports polish (bg transitions, sprite layers/positions, WebAudio fades/looping), flags API, error surfaces
+- 0.2.0: Renderer polish (backlog, auto, skip, quick save/load with thumbnails, bg slide, sprite move) – DONE in alpha
+- 0.3.0: Ports polish (sprite layers/positions, WebAudio backend improvements), flags API, error surfaces
 - 0.3.0: Authoring tools (split-pane editor, DSL parser MVP, live preview + validator)
 - 0.4.0: React Native renderer, AsyncStorage adapter; storage abstractions unified
 
