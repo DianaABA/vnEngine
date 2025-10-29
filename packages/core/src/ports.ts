@@ -1,5 +1,9 @@
 // Abstract interfaces for cross-platform rendering
-export type Transition = { type: 'fade' | 'crossfade' | 'slide' | 'move' | 'scale'; durationMs: number };
+export type Transition = {
+  type: 'fade' | 'crossfade' | 'slide' | 'move' | 'scale';
+  durationMs: number;
+  direction?: 'left' | 'right' | 'up' | 'down';
+};
 
 export interface AudioPort {
   play(idOrUrl: string, loop?: boolean, volume?: number, fadeInMs?: number): void;

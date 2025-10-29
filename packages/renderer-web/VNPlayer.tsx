@@ -75,13 +75,15 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         case 'showSprite':
           {
             const t = (args as any).transition as { type?: string; durationMs?: number } | undefined;
-            const sprite = { ...(args as any) } as Sprite;
-            if (t && t.type === 'fade' && t.durationMs) {
-              sprite.opacity = 0;
+            const incoming = { ...(args as any) } as Sprite;
+            const exists = (s: Sprite) => s.id === (incoming as any).id;
+
+            if (t && t.type === 'fade' && t.durationMs && !sprites.some(exists)) {
+              // Fade-in for new sprite
+              const sprite = { ...incoming, opacity: 0, transitionMs: t.durationMs } as Sprite;
               setSprites((prev: Sprite[]) => [...prev, sprite]);
-              // trigger fade-in next tick
               requestAnimationFrame(() => {
-                setSprites((prev: Sprite[]) => prev.map(s => (s === sprite || s.id === sprite.id ? { ...s, opacity: 1 } : s)));
+                setSprites((prev: Sprite[]) => prev.map(s => (exists(s) ? { ...s, opacity: 1 } : s)));
               });
               setBusy(true);
               setTimeout(() => {
@@ -90,9 +92,31 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
                 setInstruction(next);
               }, t.durationMs);
               return;
-            } else {
-              setSprites((prev: Sprite[]) => [...prev, sprite]);
             }
+
+            if (t && t.type === 'move' && t.durationMs && sprites.some(exists)) {
+              // Movement update for existing sprite
+              const duration = t.durationMs;
+              setSprites((prev: Sprite[]) => prev.map(s => (exists(s) ? { ...s, ...incoming, transitionMs: duration } : s)));
+              setBusy(true);
+              setTimeout(() => {
+                setBusy(false);
+                const next = engine.proceed();
+                setInstruction(next);
+              }, duration);
+              return;
+            }
+
+            // Default: add or replace sprite without blocking
+            setSprites((prev: Sprite[]) => {
+              const idx = prev.findIndex(exists);
+              if (idx >= 0) {
+                const copy = prev.slice();
+                copy[idx] = { ...copy[idx], ...incoming };
+                return copy;
+              }
+              return [...prev, incoming];
+            });
           }
           break;
         case 'hideSprite':

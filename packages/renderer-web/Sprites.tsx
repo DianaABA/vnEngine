@@ -6,6 +6,7 @@ type Sprite = {
   at?: { x?: number | string; y?: number | string; z?: number; anchor?: 'center' | 'bottom' };
   opacity?: number;
   widthPct?: number; // simple sizing based on pose
+  transitionMs?: number;
 };
 
 export const Sprites: React.FC<{ sprites: Sprite[]; assets?: Record<string, string> }> = ({ sprites, assets }) => (
@@ -28,7 +29,7 @@ export const Sprites: React.FC<{ sprites: Sprite[]; assets?: Record<string, stri
             zIndex: sprite.at?.z || 1,
             width,
             opacity,
-            transition: 'all 0.3s ease',
+            transition: `all ${sprite.transitionMs ?? 300}ms ease`,
             transform: 'translate(-50%, -100%)',
           }}
         />
