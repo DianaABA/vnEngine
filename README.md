@@ -32,9 +32,9 @@ Quickstart
 - Build engine packages (core + renderer): npm run build:packages
 - Run tests: npm test
 - Typecheck all packages: npm run typecheck
-- Run the demo web app (webpack): npm start (http://localhost:8080)
+- Run the demo web app (webpack): npm start (terminal prints the URL, e.g., http://localhost:8081)
 - Run the author app (Vite): npm run dev -w apps/author (http://localhost:5173)
-- Run the clean smoke test app (Vite): npm run dev:zero (http://localhost:3100)
+- Run the clean smoke test app (Vite): npm run dev:zero (defaults to http://localhost:3100; will use a free port if taken)
 
 You can also use VS Code: F5 on “Launch Web App (webpack)” or “Launch Author App (Vite)”. Tasks for build, test, lint, and typecheck are included in .vscode/tasks.json.
 
@@ -84,7 +84,7 @@ npm run typecheck
 npm start
 ```
 
-Opens http://localhost:8080
+Opens the printed localhost URL (e.g., http://localhost:8081)
 
 - Author app (Vite):
 
@@ -100,7 +100,16 @@ Opens http://localhost:5173
 npm run dev:zero
 ```
 
-Opens http://localhost:3100 and shows a tiny script: two dialogue lines → a choice → end. This is ideal for verifying engine upgrades quickly.
+Opens http://localhost:3100 (or the port printed by Vite) and shows a compact scene demonstrating:
+
+- Background transitions (crossfade)
+- Camera pan/zoom with easing
+- Shake effect
+- Timed choices with an animated countdown ring
+- Conditional choices (hidden via visibleIf; disabled via enabledIf)
+- Variable-driven logic (setVar; expressions in conditions like affinity >= 3 and hasKey || route == 'A')
+
+This is ideal for quickly verifying engine + renderer features.
 
 ---
 
@@ -123,6 +132,10 @@ The React renderer (`@vn/renderer-web` → `VNPlayer`) includes built-in UX help
 	- UI: Save / Load buttons
 	- Storage: localStorage key `vn_quick_slot_1`
 	- Thumbnail: 320x180 image generated from background and current dialogue overlay
+
+	- Timed Choices: Auto-select after timeout
+		- UI: Countdown ring shows remaining seconds
+		- Behavior: Honors defaultIndex if specified; choices can be disabled
 
 Visual transitions (web):
 - Background: fade, crossfade, slide (left/right/up/down) with duration
@@ -230,6 +243,7 @@ export default function App() {
 | playMusic      | { name: 'playMusic', idOrUrl: string, loop?: boolean }  | Play music/audio      | AudioPort   |
 | stopMusic      | { name: 'stopMusic', id?: string }                      | Stop music/audio      | AudioPort   |
 | setFlag        | { name: 'setFlag', key: string, value: boolean }        | Set engine flag       | Renderer    |
+| setVar         | { name: 'setVar', key: string, value: any }             | Set engine variable   | Renderer    |
 | wait           | { name: 'wait', ms: number }                            | Pause before proceed  | Renderer    |
 | changeScene    | { name: 'changeScene', sceneId: string, nodeId?: string } | Switch scene & jump | Renderer→Engine |
 | shakeBackground| { name: 'shakeBackground', durationMs: number, intensity?: number } | Shake camera/bg | Renderer    |
@@ -249,9 +263,15 @@ sequenceDiagram
 ```
 
 ## Notes
-- The engine emits runCommand instructions for command nodes, but does not mutate UI/audio/flags directly.
-- Renderer dispatches commands to platform ports and calls engine.proceed() after handling.
-- Flags are only mutated when renderer calls engine.setFlag(key, value).
+- The engine emits runCommand instructions for command nodes; renderer performs the side effects and then calls engine.proceed().
+- Flags and variables mutate only when renderer calls engine.setFlag / engine.setVar.
+- Conditions can reference flags or variables and support `!name`, comparisons (`== != > >= < <=`), and logical `&&` / `||` (no parentheses).
+
+### Conditional Choices
+- Each choice can define:
+	- `visibleIf`: hide the choice when false (alias: `condition`)
+	- `enabledIf`: show but disable the choice when false
+- The `showChoices` instruction includes `{ disabled?: boolean }` per choice; the web renderer displays disabled options with muted styling.
 # VNEngine Monorepo Milestone Summary & Roadmap
 
 ## 1. Core Modules Status

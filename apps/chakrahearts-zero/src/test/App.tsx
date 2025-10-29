@@ -12,11 +12,18 @@ const script = {
         start: { type: 'command', id: 'start', name: 'setBackground', args: { key: 'bg1', transition: { type: 'crossfade', durationMs: 800 } }, next: 'intro1' },
         intro1: { type: 'dialogue', id: 'intro1', speaker: 'Ava', text: 'Welcome to ChakraHearts Zero! (crossfade bg)', next: 'cam1' },
         cam1: { type: 'command', id: 'cam1', name: 'camera', args: { xPct: 10, yPct: 0, scale: 1.2, durationMs: 1200, easing: 'ease-in-out' }, next: 'intro2' },
-  intro2: { type: 'dialogue', id: 'intro2', speaker: 'Kai', text: 'Camera pans and zooms in. A choice will auto-pick after 5s.', next: 'shake1' },
+  intro2: { type: 'dialogue', id: 'intro2', speaker: 'Kai', text: 'Camera pans and zooms in. A choice will auto-pick after 5s.', next: 'setAff' },
+  // Demonstrate variables/expressions controlling choice visibility/enabled
+  setAff: { type: 'command', id: 'setAff', name: 'setVar', args: { key: 'affinity', value: 2 }, next: 'shake1' },
   // Quick shake before the choice
   shake1: { type: 'command', id: 'shake1', name: 'shakeBackground', args: { durationMs: 600, intensity: 8 }, next: 'timer1' },
-  timer1: { type: 'command', id: 'timer1', name: 'choiceTimer', args: { timeoutMs: 5000, defaultIndex: 1 }, next: 'choice' },
-  choice: { type: 'choice', id: 'choice', choices: [ { text: 'Yes!', next: 'camReset' }, { text: 'Maybe later', next: 'camReset' } ] },
+        timer1: { type: 'command', id: 'timer1', name: 'choiceTimer', args: { timeoutMs: 5000, defaultIndex: 1 }, next: 'choice' },
+        choice: { type: 'choice', id: 'choice', choices: [
+          { text: 'Yes!', next: 'camReset' },
+          { text: 'Maybe later', next: 'camReset' },
+          { text: 'Secret route', next: 'camReset', visibleIf: 'affinity >= 3' },
+          { text: 'Hard mode', next: 'camReset', enabledIf: 'affinity >= 3' }
+        ] },
   // Reset camera before ending
   camReset: { type: 'command', id: 'camReset', name: 'camera', args: { xPct: 0, yPct: 0, scale: 1, durationMs: 800, easing: 'ease-out' }, next: 'end' },
   end: { type: 'end', id: 'end' }
