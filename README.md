@@ -1,3 +1,18 @@
+# Visual Novel Engine (monorepo)
+
+Quickstart
+
+- Requirements: Node.js 18+ and npm 8+.
+- Install deps: npm install
+- Run the demo web app: npm start (opens http://localhost:8080)
+- Run the author app: npm run dev -w apps/author (Vite on http://localhost:5173)
+- Run tests: npm test
+- Typecheck all packages: npm run typecheck
+
+You can also use VS Code: F5 on “Launch Web App (webpack)” or “Launch Author App (Vite)”. Tasks for build, test, lint, and typecheck are included in .vscode/tasks.json.
+
+---
+
 # Commands System
 
 ## Command Table

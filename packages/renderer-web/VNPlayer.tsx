@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { VNEngine, RenderInstruction } from '@vn/core/src/vnEngineNodeSystem';
+import { NodeVNEngine as VNEngine, RenderInstruction } from '@vn/core';
 import { Background } from './Background';
 import { Sprites } from './Sprites';
 import { AudioPlayer } from './AudioPlayer';
@@ -15,39 +15,47 @@ export interface VNPlayerProps {
 
 export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [instruction, setInstruction] = useState<RenderInstruction | null>(null);
-  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [, setFlags] = useState<Record<string, boolean>>({});
   const [bgKey, setBgKey] = useState<string>('');
-  const [sprites, setSprites] = useState<any[]>([]);
+  type Sprite = { id?: string; [k: string]: any };
+  const [sprites, setSprites] = useState<Sprite[]>([]);
   const [audio, setAudio] = useState<string>('');
 
+  // Initialize first instruction
   useEffect(() => {
-    setInstruction(engine.getCurrentInstruction());
-    const sub = engine.onInstruction((instr) => setInstruction(instr));
-    return () => sub.unsubscribe();
+    try {
+      const first = engine.next();
+      setInstruction(first);
+    } catch (e) {
+      console.error(e);
+      setInstruction({ kind: 'end' } as RenderInstruction);
+    }
   }, [engine]);
 
   const handleNext = useCallback(() => {
-    engine.proceed();
+    const instr = engine.proceed();
+    setInstruction(instr);
   }, [engine]);
 
   const handleChoice = useCallback((index: number) => {
-    engine.choose(index);
+    const instr = engine.choose(index);
+    setInstruction(instr);
   }, [engine]);
 
   // Command dispatcher
   useEffect(() => {
     if (!instruction) return;
-    if ('kind' in instruction && instruction.kind === 'runCommand') {
-      const { name, args } = instruction;
+    if (instruction.kind === 'runCommand') {
+      const { name, args } = instruction as any;
       switch (name) {
         case 'setBackground':
           setBgKey((args as any).key || '');
           break;
         case 'showSprite':
-          setSprites((prev) => [...prev, args]);
+          setSprites((prev: Sprite[]) => [...prev, args as Sprite]);
           break;
         case 'hideSprite':
-          setSprites((prev) => prev.filter(s => s.id !== (args as any).id));
+          setSprites((prev: Sprite[]) => prev.filter((s: Sprite) => s.id !== (args as any).id));
           break;
         case 'playMusic':
           setAudio((args as any).idOrUrl || '');
@@ -61,7 +69,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         default:
           break;
       }
-      setTimeout(() => engine.proceed(), 0);
+      const next = engine.proceed();
+      setInstruction(next);
     }
   }, [instruction, engine]);
 
@@ -85,10 +94,9 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
 
   if (!instruction) return <div>Loading...</div>;
 
-  if ('type' in instruction) {
-    switch (instruction.type) {
+  switch (instruction.kind) {
     case 'showDialogue': {
-      const node = (instruction as any).node;
+      const node = instruction as any;
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
@@ -103,8 +111,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       );
     }
     case 'showChoices': {
-      const node = (instruction as any).node;
-      const choices = node.choices as {id: string; text: string}[];
+      const node = instruction as any;
+      const choices = (node.choices as Array<{ text: string; index: number }>) || [];
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
@@ -112,16 +120,16 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
           <AudioPlayer trackId={audio} assets={assets.audio} />
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
-            {choices.map((choice: {id: string; text: string}, i: number) => (
-              <button key={choice.id} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(i)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
+            {choices.map((choice, i) => (
+              <button key={`${i}-${choice.text}`} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(choice.index)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
             ))}
           </div>
         </div>
       );
     }
-    case 'showCommand':
+    case 'runCommand':
       return <div>Running command...</div>;
-    case 'showEnd':
+    case 'end':
       return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4">
           <Background currentKey={bgKey} assets={assets.backgrounds} />
@@ -136,6 +144,4 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     default:
       return <div>Unknown instruction</div>;
   }
-}
-// ...existing code...
 };

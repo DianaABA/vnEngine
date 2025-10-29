@@ -15,9 +15,10 @@
     "outDir": "dist",
     "baseUrl": "./",
     "paths": {
-      "@vn/core/*": ["../core/src/*"]
+      "@vn/core/*": ["../core/src/*"],
+      "@vn/core": ["../core/src/index.ts"]
     }
   },
-  "include": ["*.ts", "*.tsx"],
+  "include": ["*.ts", "*.tsx", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
