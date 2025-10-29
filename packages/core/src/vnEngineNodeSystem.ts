@@ -15,7 +15,7 @@ export type NodeID = string;
 export type DialogueNode = { type: 'dialogue'; id: NodeID; speaker?: string; text: string; next?: NodeID };
 export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string }> };
 export type BranchNode   = { type: 'branch';   id: NodeID; condition: string; then: NodeID; else?: NodeID };
-export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'wait'|'changeScene'|'shakeBackground'; args?: Record<string, unknown>; next?: NodeID };
+export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'wait'|'changeScene'|'shakeBackground'|'camera'|'choiceTimer'; args?: Record<string, unknown>; next?: NodeID };
 export type EndNode      = { type: 'end';      id: NodeID };
 
 export type VNNode = DialogueNode | ChoiceNode | BranchNode | CommandNode | EndNode;
@@ -36,11 +36,12 @@ type Snapshot = {
 };
 
 /** Internal traversal state flags */
-enum EngineMode {
-  Idle = 0,
-  ShowingBranch = 1,     // we just emitted showBranch, next next() will resolve/evaluate
-  AwaitingCommand = 2,   // we emitted runCommand; ignore 'next' until proceed()
-}
+const EngineMode = {
+  Idle: 0,
+  ShowingBranch: 1,     // we just emitted showBranch, next next() will resolve/evaluate
+  AwaitingCommand: 2,   // we emitted runCommand; ignore 'next' until proceed()
+} as const;
+type EngineMode = typeof EngineMode[keyof typeof EngineMode];
 
 export class VNEngine {
   private script: { scenes: Record<string, { id: string; start: NodeID; nodes: Record<NodeID, VNNode> }>; startScene: string };

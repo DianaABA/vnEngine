@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 type BgTransition = { type: 'fade' | 'crossfade' | 'slide'; durationMs: number; direction?: 'left'|'right'|'up'|'down' } | undefined;
+type Camera = { xPct?: number; yPct?: number; scale?: number; durationMs?: number; easing?: string } | undefined;
 
 export const Background: React.FC<{
   currentKey: string;
   previousKey?: string;
   assets?: Record<string, string>;
   transition?: BgTransition;
-}> = ({ currentKey, previousKey, assets, transition }) => {
+  camera?: Camera;
+}> = ({ currentKey, previousKey, assets, transition, camera }) => {
   const currSrc = assets?.[currentKey] || assets?.['default'] || '';
   const prevSrc = previousKey ? (assets?.[previousKey] || '') : '';
   const [visible, setVisible] = useState({ curr: !!currSrc, prev: !!prevSrc });
@@ -15,6 +17,19 @@ export const Background: React.FC<{
   const rafRef = useRef<number | null>(null);
   const [currTransform, setCurrTransform] = useState<string>('translate(0,0)');
   const [shakeOffset, setShakeOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [cam, setCam] = useState<{ xPct: number; yPct: number; scale: number; durationMs: number; easing: string }>({ xPct: 0, yPct: 0, scale: 1, durationMs: 0, easing: 'ease' });
+
+  // Apply camera changes
+  useEffect(() => {
+    if (!camera) return;
+    setCam(prev => ({
+      xPct: camera.xPct ?? prev.xPct,
+      yPct: camera.yPct ?? prev.yPct,
+      scale: camera.scale ?? prev.scale,
+      durationMs: camera.durationMs ?? 0,
+      easing: camera.easing ?? 'ease'
+    }));
+  }, [camera?.xPct, camera?.yPct, camera?.scale, camera?.durationMs, camera?.easing]);
 
   // Listen for shake requests
   useEffect(() => {
@@ -82,6 +97,8 @@ export const Background: React.FC<{
   }, [currentKey, previousKey, currSrc, prevSrc, transition]);
 
   const duration = (transition?.durationMs ?? 0) + 'ms';
+  const camDuration = (cam.durationMs ?? 0) + 'ms';
+  const camTranslate = `translate(${cam.xPct}%, ${cam.yPct}%) scale(${cam.scale})`;
 
   return (
     <div className="absolute inset-0 w-full h-full">
@@ -98,7 +115,7 @@ export const Background: React.FC<{
           src={currSrc}
           alt="Background"
           className="object-cover w-full h-full absolute inset-0"
-          style={{ opacity: visible.curr ? 1 : 0, transform: `${currTransform} translate(${shakeOffset.x}px, ${shakeOffset.y}px)`, transition: `opacity ${duration} linear, transform ${duration} ease` }}
+          style={{ opacity: visible.curr ? 1 : 0, transform: `${camTranslate} ${currTransform} translate(${shakeOffset.x}px, ${shakeOffset.y}px)`, transition: `opacity ${duration} linear, transform ${camDuration} ${cam.easing}` }}
         />
       ) : (
         <div className="bg-gray-900 w-full h-full" />

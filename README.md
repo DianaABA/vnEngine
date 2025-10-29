@@ -233,6 +233,8 @@ export default function App() {
 | wait           | { name: 'wait', ms: number }                            | Pause before proceed  | Renderer    |
 | changeScene    | { name: 'changeScene', sceneId: string, nodeId?: string } | Switch scene & jump | Renderer→Engine |
 | shakeBackground| { name: 'shakeBackground', durationMs: number, intensity?: number } | Shake camera/bg | Renderer    |
+| camera         | { name: 'camera', xPct?: number, yPct?: number, scale?: number, durationMs?: number, easing?: string } | Pan/zoom camera | Renderer    |
+| choiceTimer    | { name: 'choiceTimer', timeoutMs: number, defaultIndex?: number }   | Timed choice auto-pick | Renderer |
 
 ## Sequence Diagram
 

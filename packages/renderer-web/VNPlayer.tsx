@@ -19,6 +19,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [bgKey, setBgKey] = useState<string>('');
   const [prevBgKey, setPrevBgKey] = useState<string | undefined>(undefined);
   const [bgTransition, setBgTransition] = useState<{ type: 'fade' | 'crossfade' | 'slide'; durationMs: number; direction?: 'left'|'right'|'up'|'down' } | undefined>(undefined);
+  const [bgCamera, setBgCamera] = useState<{ xPct?: number; yPct?: number; scale?: number; durationMs?: number; easing?: string } | undefined>(undefined);
   type Sprite = { id?: string; [k: string]: any };
   const [sprites, setSprites] = useState<Sprite[]>([]);
   const [audioCmd, setAudioCmd] = useState<any | undefined>(undefined);
@@ -35,6 +36,10 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const skipLoopRef = useRef<boolean>(false);
   // Save thumb cache to avoid async races
   const thumbCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Choice timer
+  const [pendingChoiceTimer, setPendingChoiceTimer] = useState<{ timeoutMs: number; defaultIndex?: number } | null>(null);
+  const [choiceDeadline, setChoiceDeadline] = useState<number | null>(null);
+  const choiceTimerRef = useRef<number | null>(null);
   // Typewriter
   const [typewriter, setTypewriter] = useState<boolean>(true);
   const [textSpeed, setTextSpeed] = useState<number>(1); // 0.5x..3x
@@ -191,6 +196,29 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         case 'setFlag':
           setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
           break;
+        case 'camera': {
+          const a = args as any;
+          const duration = Math.max(0, Number(a?.durationMs ?? 0));
+          const easing = String(a?.easing || 'ease');
+          setBgCamera({ xPct: a?.xPct, yPct: a?.yPct, scale: a?.scale, durationMs: duration, easing });
+          if (duration > 0) {
+            setBusy(true);
+            setTimeout(() => {
+              setBusy(false);
+              const next = engine.proceed();
+              setInstruction(next);
+            }, duration);
+            return;
+          }
+        }
+        break;
+        case 'choiceTimer': {
+          const a = args as any;
+          const t = Math.max(0, Number(a?.timeoutMs ?? a?.ms ?? 0));
+          if (t > 0) setPendingChoiceTimer({ timeoutMs: t, defaultIndex: typeof a?.defaultIndex === 'number' ? a.defaultIndex : 0 });
+          // No blocking; proceed to allow next node (likely a showChoices) to render
+        }
+        break;
         case 'wait': {
           const ms = Math.max(0, Number((args as any)?.ms ?? (args as any)?.durationMs ?? 0));
           setBusy(true);
@@ -323,6 +351,30 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     // Refs for latest busy/instruction inside loop
     setTimeout(tick, 0);
   }, [skip, instruction, busy, engine]);
+
+  // Choice timer behavior on showChoices
+  useEffect(() => {
+    if (choiceTimerRef.current) {
+      window.clearTimeout(choiceTimerRef.current);
+      choiceTimerRef.current = null;
+      setChoiceDeadline(null);
+    }
+    if (!instruction || instruction.kind !== 'showChoices') return;
+    if (!pendingChoiceTimer) return;
+    const now = Date.now();
+    const deadline = now + pendingChoiceTimer.timeoutMs;
+    setChoiceDeadline(deadline);
+    choiceTimerRef.current = window.setTimeout(() => {
+      handleChoice(pendingChoiceTimer.defaultIndex ?? 0);
+      setPendingChoiceTimer(null);
+      setChoiceDeadline(null);
+    }, pendingChoiceTimer.timeoutMs);
+    return () => {
+      if (choiceTimerRef.current) window.clearTimeout(choiceTimerRef.current);
+      choiceTimerRef.current = null;
+      setChoiceDeadline(null);
+    };
+  }, [instruction, pendingChoiceTimer, handleChoice]);
 
   const instructionRef = useRef<RenderInstruction | null>(null);
   const busyRef = useRef<boolean>(false);
@@ -489,7 +541,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const node = instruction as any;
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4 relative">
-          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} camera={bgCamera} />
           <Sprites sprites={sprites as any} assets={assets.sprites} />
           <AudioPlayer command={audioCmd} assets={assets.audio} />
           {ControlsBar}
@@ -507,13 +559,16 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const choices = (node.choices as Array<{ text: string; index: number }>) || [];
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4 relative">
-          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} camera={bgCamera} />
           <Sprites sprites={sprites as any} assets={assets.sprites} />
           <AudioPlayer command={audioCmd} assets={assets.audio} />
           {ControlsBar}
           {BacklogPanel}
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
+              {pendingChoiceTimer && choiceDeadline && (
+                <div className="text-xs opacity-80 mb-2">Auto-selecting in {Math.max(0, Math.ceil((choiceDeadline - Date.now())/1000))}s</div>
+              )}
             {choices.map((choice, i) => (
               <button key={`${i}-${choice.text}`} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(choice.index)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
             ))}
@@ -524,7 +579,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     case 'runCommand':
       return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4 relative">
-          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} camera={bgCamera} />
           <Sprites sprites={sprites as any} assets={assets.sprites} />
           <AudioPlayer command={audioCmd} assets={assets.audio} />
           {ControlsBar}
@@ -535,7 +590,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     case 'end':
       return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4 relative">
-          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} camera={bgCamera} />
           <Sprites sprites={[]} assets={assets.sprites} />
           <AudioPlayer command={{ action: 'stop', fadeOutMs: 300 }} assets={assets.audio} />
           {ControlsBar}
