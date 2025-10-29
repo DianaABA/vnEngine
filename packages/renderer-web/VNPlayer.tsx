@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { NodeVNEngine as VNEngine, RenderInstruction } from '@vn/core';
 import { Background } from './Background';
 import { Sprites } from './Sprites';
@@ -18,11 +18,23 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [, setFlags] = useState<Record<string, boolean>>({});
   const [bgKey, setBgKey] = useState<string>('');
   const [prevBgKey, setPrevBgKey] = useState<string | undefined>(undefined);
-  const [bgTransition, setBgTransition] = useState<{ type: 'fade' | 'crossfade'; durationMs: number } | undefined>(undefined);
+  const [bgTransition, setBgTransition] = useState<{ type: 'fade' | 'crossfade' | 'slide'; durationMs: number; direction?: 'left'|'right'|'up'|'down' } | undefined>(undefined);
   type Sprite = { id?: string; [k: string]: any };
   const [sprites, setSprites] = useState<Sprite[]>([]);
   const [audioCmd, setAudioCmd] = useState<any | undefined>(undefined);
   const [busy, setBusy] = useState<boolean>(false);
+  // Backlog of dialogues
+  const [backlog, setBacklog] = useState<Array<{ speaker?: string; text: string }>>([]);
+  const [backlogOpen, setBacklogOpen] = useState<boolean>(false);
+  const lastBacklogKeyRef = useRef<string>('');
+  // Auto/Skip
+  const [auto, setAuto] = useState<boolean>(false);
+  const [autoSpeed, setAutoSpeed] = useState<number>(1); // 1x..3x
+  const autoTimerRef = useRef<number | null>(null);
+  const [skip, setSkip] = useState<boolean>(false);
+  const skipLoopRef = useRef<boolean>(false);
+  // Save thumb cache to avoid async races
+  const thumbCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Initialize first instruction
   useEffect(() => {
@@ -47,6 +59,19 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     setInstruction(instr);
   }, [engine]);
 
+  // Track dialogue in backlog when instruction changes
+  useEffect(() => {
+    if (!instruction) return;
+    if (instruction.kind === 'showDialogue') {
+      const node = instruction as any;
+      const key = `${node.speaker || ''}|${node.text}`;
+      if (key !== lastBacklogKeyRef.current) {
+        lastBacklogKeyRef.current = key;
+        setBacklog((prev) => [...prev, { speaker: node.speaker, text: node.text }]);
+      }
+    }
+  }, [instruction]);
+
   // Command dispatcher
   useEffect(() => {
     if (!instruction) return;
@@ -56,11 +81,11 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         case 'setBackground':
           {
             const key = (args as any).key || '';
-            const transition = (args as any).transition as { type?: string; durationMs?: number } | undefined;
+            const transition = (args as any).transition as { type?: string; durationMs?: number; direction?: 'left'|'right'|'up'|'down' } | undefined;
             setPrevBgKey(bgKey || undefined);
             setBgKey(key);
-            if (transition && (transition.type === 'fade' || transition.type === 'crossfade') && transition.durationMs) {
-              setBgTransition({ type: (transition.type as any) ?? 'crossfade', durationMs: transition.durationMs });
+            if (transition && (transition.type === 'fade' || transition.type === 'crossfade' || transition.type === 'slide') && transition.durationMs) {
+              setBgTransition({ type: (transition.type as any) ?? 'crossfade', durationMs: transition.durationMs, direction: transition.direction });
               setBusy(true);
               setTimeout(() => {
                 setBgTransition(undefined);
@@ -162,6 +187,147 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     }
   }, [instruction, engine]);
 
+  // Auto-advance effect
+  useEffect(() => {
+    if (!autoTimerRef.current) {
+      // no-op
+    } else {
+      window.clearTimeout(autoTimerRef.current);
+      autoTimerRef.current = null;
+    }
+    if (!auto || backlogOpen) return;
+    if (!instruction || instruction.kind !== 'showDialogue') return;
+    if (busy) return;
+    const node = instruction as any;
+    const base = 1200; // ms
+    const perChar = 35; // ms per char
+    const delay = Math.max(500, (base + perChar * (node.text?.length ?? 0)) / Math.max(0.25, Math.min(3, autoSpeed)));
+    autoTimerRef.current = window.setTimeout(() => {
+      handleNext();
+    }, delay);
+    return () => {
+      if (autoTimerRef.current) window.clearTimeout(autoTimerRef.current);
+      autoTimerRef.current = null;
+    };
+  }, [auto, autoSpeed, instruction, busy, backlogOpen, handleNext]);
+
+  // Skip loop: fast-forward to next choice or end
+  useEffect(() => {
+    if (!skip) return;
+    if (backlogOpen) return; // don't skip while viewing backlog
+    if (!instruction) return;
+    if (instruction.kind === 'showChoices' || instruction.kind === 'end') return; // stop at choice/end
+    if (busy) return; // wait until transitions end
+    if (skipLoopRef.current) return; // avoid re-entrancy
+    skipLoopRef.current = true;
+    const tick = () => {
+      if (!skip) { skipLoopRef.current = false; return; }
+      const curr = instructionRef.current;
+      if (!curr) { skipLoopRef.current = false; return; }
+      if (curr.kind === 'showChoices' || curr.kind === 'end') { skipLoopRef.current = false; return; }
+      if (busyRef.current) { setTimeout(tick, 0); return; }
+      // Advance
+      const next = engine.proceed();
+      setInstruction(next);
+      setTimeout(tick, 0);
+    };
+    // Refs for latest busy/instruction inside loop
+    setTimeout(tick, 0);
+  }, [skip, instruction, busy, engine]);
+
+  const instructionRef = useRef<RenderInstruction | null>(null);
+  const busyRef = useRef<boolean>(false);
+  useEffect(() => { instructionRef.current = instruction; }, [instruction]);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
+
+  // Save/Load helpers
+  const makeThumbnail = useCallback(async (): Promise<string> => {
+    try {
+      const w = 320, h = 180;
+      let canvas = thumbCanvasRef.current;
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        thumbCanvasRef.current = canvas;
+      }
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return '';
+      // Draw background image if available
+      const src = assets.backgrounds?.[bgKey] || '';
+      if (src) {
+        const img = await new Promise<HTMLImageElement>((res, rej) => {
+          const im = new Image();
+          im.crossOrigin = 'anonymous';
+          im.onload = () => res(im);
+          im.onerror = rej;
+          im.src = src;
+        });
+        // cover
+        const ratio = Math.max(w / img.width, h / img.height);
+        const dw = img.width * ratio;
+        const dh = img.height * ratio;
+        const dx = (w - dw) / 2;
+        const dy = (h - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      } else {
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, w, h);
+      }
+      // Overlay dialogue box
+      if (instructionRef.current?.kind === 'showDialogue') {
+        const node = instructionRef.current as any;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(8, h - 70, w - 16, 62);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText(node.speaker || 'Narrator', 16, h - 50);
+        ctx.font = '12px sans-serif';
+        const text = String(node.text || '').slice(0, 80);
+        ctx.fillText(text, 16, h - 30);
+      }
+      return canvas.toDataURL('image/jpeg', 0.8);
+    } catch {
+      return '';
+    }
+  }, [assets.backgrounds, bgKey]);
+
+  const handleSave = useCallback(async () => {
+    try {
+      const snap = (engine as any).snapshot ?? engine.snapshot; // TS type
+      const last = backlog[backlog.length - 1];
+      const thumb = await makeThumbnail();
+      const payload = {
+        snapshot: snap,
+        meta: {
+          t: Date.now(),
+          lastLine: last ? `${last.speaker ? last.speaker + ': ' : ''}${last.text}` : '',
+          bgKey,
+          thumb,
+        },
+      };
+      localStorage.setItem('vn_quick_slot_1', JSON.stringify(payload));
+      // Optional: toast
+    } catch (e) {
+      console.error('Save failed', e);
+    }
+  }, [engine, backlog, makeThumbnail, bgKey]);
+
+  const handleLoad = useCallback(() => {
+    try {
+      const raw = localStorage.getItem('vn_quick_slot_1');
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data?.snapshot) {
+        (engine as any).hydrate(data.snapshot);
+        // Reset UI bits; keep bg/sprites as-is until script updates them
+        const next = engine.next();
+        setInstruction(next);
+      }
+    } catch (e) {
+      console.error('Load failed', e);
+    }
+  }, [engine]);
+
   // Keyboard UX
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -175,6 +341,15 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       if (instruction.kind === 'showChoices' && e.key === 'Escape') {
         handleNext();
       }
+      if (e.key.toLowerCase() === 'b') {
+        setBacklogOpen((v) => !v);
+      }
+      if (e.key.toLowerCase() === 'a') {
+        setAuto((v) => !v);
+      }
+      if (e.key.toLowerCase() === 's') {
+        setSkip((v) => !v);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -182,14 +357,49 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
 
   if (!instruction) return <div>Loading...</div>;
 
+  const ControlsBar = (
+    <div className="absolute top-2 right-2 flex gap-2">
+      <button className="px-3 py-1 bg-gray-800/70 text-white rounded" onClick={() => setBacklogOpen(true)} aria-label="Backlog">Backlog</button>
+      <button className={`px-3 py-1 ${auto ? 'bg-blue-700' : 'bg-gray-800/70'} text-white rounded`} onClick={() => setAuto(a => !a)} aria-label="Auto">Auto</button>
+      <label className="px-2 py-1 bg-gray-800/70 text-white rounded flex items-center gap-1" aria-label="Speed">
+        <span>Speed</span>
+        <input type="range" min={0.5} max={3} step={0.25} value={autoSpeed} onChange={e => setAutoSpeed(parseFloat(e.target.value))} />
+      </label>
+      <button className={`px-3 py-1 ${skip ? 'bg-green-700' : 'bg-gray-800/70'} text-white rounded`} onClick={() => setSkip(s => !s)} aria-label="Skip">Skip</button>
+      <button className="px-3 py-1 bg-gray-800/70 text-white rounded" onClick={handleSave} aria-label="Save">Save</button>
+      <button className="px-3 py-1 bg-gray-800/70 text-white rounded" onClick={handleLoad} aria-label="Load">Load</button>
+    </div>
+  );
+
+  const BacklogPanel = backlogOpen ? (
+    <div className="absolute inset-0 bg-black/70 text-white p-4 overflow-y-auto" onClick={() => setBacklogOpen(false)} role="dialog" aria-label="Backlog">
+      <div className="max-w-xl mx-auto bg-black/60 p-4 rounded">
+        <div className="flex justify-between items-center mb-2">
+          <div className="font-bold">Backlog</div>
+          <button className="px-2 py-1 bg-gray-700 rounded" onClick={() => setBacklogOpen(false)} aria-label="Close">Close</button>
+        </div>
+        <div className="space-y-2">
+          {backlog.map((l, i) => (
+            <div key={i} className="text-sm">
+              <span className="font-semibold mr-2">{l.speaker || 'Narrator'}:</span>
+              <span>{l.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   switch (instruction.kind) {
     case 'showDialogue': {
       const node = instruction as any;
       return (
-        <div className="flex flex-col items-center justify-end h-full w-full p-4">
+        <div className="flex flex-col items-center justify-end h-full w-full p-4 relative">
           <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
           <Sprites sprites={sprites as any} assets={assets.sprites} />
           <AudioPlayer command={audioCmd} assets={assets.audio} />
+          {ControlsBar}
+          {BacklogPanel}
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold" aria-label="Speaker">{node.speaker || 'Narrator'}</div>
             <div className="mt-2" aria-label="Dialogue">{node.text}</div>
@@ -202,10 +412,12 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const node = instruction as any;
       const choices = (node.choices as Array<{ text: string; index: number }>) || [];
       return (
-        <div className="flex flex-col items-center justify-end h-full w-full p-4">
+        <div className="flex flex-col items-center justify-end h-full w-full p-4 relative">
           <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
           <Sprites sprites={sprites as any} assets={assets.sprites} />
           <AudioPlayer command={audioCmd} assets={assets.audio} />
+          {ControlsBar}
+          {BacklogPanel}
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
             {choices.map((choice, i) => (
@@ -216,13 +428,24 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       );
     }
     case 'runCommand':
-      return <div>Running command...</div>;
+      return (
+        <div className="flex flex-col items-center justify-center h-full w-full p-4 relative">
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Sprites sprites={sprites as any} assets={assets.sprites} />
+          <AudioPlayer command={audioCmd} assets={assets.audio} />
+          {ControlsBar}
+          {BacklogPanel}
+          <div className="bg-black bg-opacity-80 text-white rounded p-4">Running command...</div>
+        </div>
+      );
     case 'end':
       return (
-        <div className="flex flex-col items-center justify-center h-full w-full p-4">
+        <div className="flex flex-col items-center justify-center h-full w-full p-4 relative">
           <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
           <Sprites sprites={[]} assets={assets.sprites} />
           <AudioPlayer command={{ action: 'stop', fadeOutMs: 300 }} assets={assets.audio} />
+          {ControlsBar}
+          {BacklogPanel}
           <div className="bg-black bg-opacity-80 text-white rounded p-8 w-full max-w-xl">
             <div className="text-2xl font-bold mb-4">The End</div>
             <button className="px-4 py-2 bg-blue-600 rounded focus:outline-none focus:ring" onClick={() => window.location.reload()} aria-label="Restart">Restart</button>
