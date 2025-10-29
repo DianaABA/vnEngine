@@ -17,9 +17,12 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   const [instruction, setInstruction] = useState<RenderInstruction | null>(null);
   const [, setFlags] = useState<Record<string, boolean>>({});
   const [bgKey, setBgKey] = useState<string>('');
+  const [prevBgKey, setPrevBgKey] = useState<string | undefined>(undefined);
+  const [bgTransition, setBgTransition] = useState<{ type: 'fade' | 'crossfade'; durationMs: number } | undefined>(undefined);
   type Sprite = { id?: string; [k: string]: any };
   const [sprites, setSprites] = useState<Sprite[]>([]);
-  const [audio, setAudio] = useState<string>('');
+  const [audioCmd, setAudioCmd] = useState<any | undefined>(undefined);
+  const [busy, setBusy] = useState<boolean>(false);
 
   // Initialize first instruction
   useEffect(() => {
@@ -33,11 +36,13 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   }, [engine]);
 
   const handleNext = useCallback(() => {
+    if (busy) return;
     const instr = engine.proceed();
     setInstruction(instr);
   }, [engine]);
 
   const handleChoice = useCallback((index: number) => {
+    if (busy) return;
     const instr = engine.choose(index);
     setInstruction(instr);
   }, [engine]);
@@ -49,19 +54,77 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const { name, args } = instruction as any;
       switch (name) {
         case 'setBackground':
-          setBgKey((args as any).key || '');
+          {
+            const key = (args as any).key || '';
+            const transition = (args as any).transition as { type?: string; durationMs?: number } | undefined;
+            setPrevBgKey(bgKey || undefined);
+            setBgKey(key);
+            if (transition && (transition.type === 'fade' || transition.type === 'crossfade') && transition.durationMs) {
+              setBgTransition({ type: (transition.type as any) ?? 'crossfade', durationMs: transition.durationMs });
+              setBusy(true);
+              setTimeout(() => {
+                setBgTransition(undefined);
+                setBusy(false);
+                const next = engine.proceed();
+                setInstruction(next);
+              }, transition.durationMs);
+              return; // delay proceed until after transition
+            }
+          }
           break;
         case 'showSprite':
-          setSprites((prev: Sprite[]) => [...prev, args as Sprite]);
+          {
+            const t = (args as any).transition as { type?: string; durationMs?: number } | undefined;
+            const sprite = { ...(args as any) } as Sprite;
+            if (t && t.type === 'fade' && t.durationMs) {
+              sprite.opacity = 0;
+              setSprites((prev: Sprite[]) => [...prev, sprite]);
+              // trigger fade-in next tick
+              requestAnimationFrame(() => {
+                setSprites((prev: Sprite[]) => prev.map(s => (s === sprite || s.id === sprite.id ? { ...s, opacity: 1 } : s)));
+              });
+              setBusy(true);
+              setTimeout(() => {
+                setBusy(false);
+                const next = engine.proceed();
+                setInstruction(next);
+              }, t.durationMs);
+              return;
+            } else {
+              setSprites((prev: Sprite[]) => [...prev, sprite]);
+            }
+          }
           break;
         case 'hideSprite':
-          setSprites((prev: Sprite[]) => prev.filter((s: Sprite) => s.id !== (args as any).id));
+          {
+            const t = (args as any).transition as { type?: string; durationMs?: number } | undefined;
+            const id = (args as any).id as string;
+            if (t && t.type === 'fade' && t.durationMs) {
+              setSprites((prev: Sprite[]) => prev.map(s => (s.id === id ? { ...s, opacity: 0 } : s)));
+              setBusy(true);
+              setTimeout(() => {
+                setSprites((prev: Sprite[]) => prev.filter(s => s.id !== id));
+                setBusy(false);
+                const next = engine.proceed();
+                setInstruction(next);
+              }, t.durationMs);
+              return;
+            } else {
+              setSprites((prev: Sprite[]) => prev.filter((s: Sprite) => s.id !== id));
+            }
+          }
           break;
         case 'playMusic':
-          setAudio((args as any).idOrUrl || '');
+          {
+            const a = args as any;
+            setAudioCmd({ action: 'play', idOrUrl: a.idOrUrl, loop: a.loop, volume: a.volume, fadeInMs: a.fadeInMs });
+          }
           break;
         case 'stopMusic':
-          setAudio('');
+          {
+            const a = args as any;
+            setAudioCmd({ action: 'stop', fadeOutMs: a?.fadeOutMs });
+          }
           break;
         case 'setFlag':
           setFlags((prev) => ({ ...prev, [(args as any).key]: (args as any).value }));
@@ -69,6 +132,7 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
         default:
           break;
       }
+      // If we reached here, no delayed transition was used; proceed immediately
       const next = engine.proceed();
       setInstruction(next);
     }
@@ -78,13 +142,13 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!instruction) return;
-      if ('type' in instruction && instruction.type === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
+      if (instruction.kind === 'showDialogue' && (e.key === ' ' || e.key === 'Enter')) {
         handleNext();
       }
-      if ('type' in instruction && instruction.type === 'showChoices' && /^[1-9]$/.test(e.key)) {
+      if (instruction.kind === 'showChoices' && /^[1-9]$/.test(e.key)) {
         handleChoice(Number(e.key) - 1);
       }
-      if ('type' in instruction && instruction.type === 'showChoices' && e.key === 'Escape') {
+      if (instruction.kind === 'showChoices' && e.key === 'Escape') {
         handleNext();
       }
     };
@@ -99,9 +163,9 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const node = instruction as any;
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
-          <Background currentKey={bgKey} assets={assets.backgrounds} />
-          <Sprites sprites={sprites} assets={assets.sprites} />
-          <AudioPlayer trackId={audio} assets={assets.audio} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Sprites sprites={sprites as any} assets={assets.sprites} />
+          <AudioPlayer command={audioCmd} assets={assets.audio} />
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold" aria-label="Speaker">{node.speaker || 'Narrator'}</div>
             <div className="mt-2" aria-label="Dialogue">{node.text}</div>
@@ -115,9 +179,9 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       const choices = (node.choices as Array<{ text: string; index: number }>) || [];
       return (
         <div className="flex flex-col items-center justify-end h-full w-full p-4">
-          <Background currentKey={bgKey} assets={assets.backgrounds} />
-          <Sprites sprites={sprites} assets={assets.sprites} />
-          <AudioPlayer trackId={audio} assets={assets.audio} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
+          <Sprites sprites={sprites as any} assets={assets.sprites} />
+          <AudioPlayer command={audioCmd} assets={assets.audio} />
           <div className="bg-black bg-opacity-70 text-white rounded p-4 w-full max-w-xl mb-8">
             <div className="font-bold mb-2">Choose:</div>
             {choices.map((choice, i) => (
@@ -132,9 +196,9 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
     case 'end':
       return (
         <div className="flex flex-col items-center justify-center h-full w-full p-4">
-          <Background currentKey={bgKey} assets={assets.backgrounds} />
+          <Background currentKey={bgKey} previousKey={prevBgKey} assets={assets.backgrounds} transition={bgTransition} />
           <Sprites sprites={[]} assets={assets.sprites} />
-          <AudioPlayer trackId={''} assets={assets.audio} />
+          <AudioPlayer command={{ action: 'stop', fadeOutMs: 300 }} assets={assets.audio} />
           <div className="bg-black bg-opacity-80 text-white rounded p-8 w-full max-w-xl">
             <div className="text-2xl font-bold mb-4">The End</div>
             <button className="px-4 py-2 bg-blue-600 rounded focus:outline-none focus:ring" onClick={() => window.location.reload()} aria-label="Restart">Restart</button>
