@@ -1,5 +1,29 @@
 # Visual Novel Engine (monorepo)
 
+Modern, modular Visual Novel engine for web and native. Built with TypeScript and React, designed around a simple pull-based engine contract and pluggable renderers.
+
+![status](https://img.shields.io/badge/status-alpha-blue)
+![typescript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript&logoColor=white)
+![react](https://img.shields.io/badge/React-18+-61dafb?logo=react&logoColor=black)
+![monorepo](https://img.shields.io/badge/Monorepo-workspaces-green)
+
+---
+
+## Table of Contents
+
+- Quickstart
+- Monorepo Overview
+- Install and Build
+- Run the Example Apps
+- Using the Engine in Your App (local dev)
+- Commands System (engine ↔ renderer contract)
+- Milestones & Roadmap
+- Architecture Overview
+- Features
+- Troubleshooting & FAQ
+
+---
+
 Quickstart
 
 - Requirements: Node.js 18+ and npm 8+.
@@ -263,6 +287,21 @@ A scalable, modular Visual Novel engine built with React, TypeScript, and Turbor
 - JSON script format with schema/types; DSL scaffolding
 - React web renderer (`VNPlayer`)
 - Example apps: webpack demo, author prototype, and chakrahearts-zero
+
+## Troubleshooting & FAQ
+
+- The zero app can’t import @vn/core or @vn/renderer-web
+	- Build the packages first in this repo: `npm run build:packages`.
+	- With Vite, ensure `resolve.alias` points to package folders and TS `paths` point to `dist` declaration files as shown above.
+
+- Pre-commit hook fails with ESLint config warnings
+	- This repo uses ESLint flat config (`eslint.config.js`). If you see messages about `.eslintignore`, you can proceed; commits are unblocked and lint can be adjusted later.
+
+- Ports don’t do anything
+	- Background/Sprites/Audio web ports are minimal. 0.2.0 will add transitions, layering/positions, WebAudio fades/looping.
+
+- Use from a different app (outside monorepo)
+	- See “Using the Engine in Your App (local dev)”. Use local file deps, add Vite aliases and TS paths, and build packages here once.
 
 ## Getting Started
 See the monorepo structure and packages for usage examples.
