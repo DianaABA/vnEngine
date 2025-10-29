@@ -13,7 +13,7 @@ export type GameScript = {
 export type NodeID = string;
 
 export type DialogueNode = { type: 'dialogue'; id: NodeID; speaker?: string; text: string; next?: NodeID };
-export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string }> };
+export type ChoiceNode   = { type: 'choice';   id: NodeID; choices: Array<{ text: string; next: NodeID; condition?: string; visibleIf?: string; enabledIf?: string }> };
 export type BranchNode   = { type: 'branch';   id: NodeID; condition: string; then: NodeID; else?: NodeID };
 export type CommandNode  = { type: 'command';  id: NodeID; name: 'setBackground'|'showSprite'|'hideSprite'|'playMusic'|'stopMusic'|'setFlag'|'wait'|'changeScene'|'shakeBackground'|'camera'|'choiceTimer'; args?: Record<string, unknown>; next?: NodeID };
 export type EndNode      = { type: 'end';      id: NodeID };
@@ -22,7 +22,7 @@ export type VNNode = DialogueNode | ChoiceNode | BranchNode | CommandNode | EndN
 
 export type RenderInstruction =
   | { kind: 'showDialogue'; speaker?: string; text: string }
-  | { kind: 'showChoices'; choices: Array<{ text: string; index: number }> }
+  | { kind: 'showChoices'; choices: Array<{ text: string; index: number; disabled?: boolean }> }
   | { kind: 'runCommand'; name: CommandNode['name']; args?: Record<string, unknown> }
   | { kind: 'showBranch' }
   | { kind: 'end' };
@@ -148,9 +148,16 @@ export class VNEngine implements EngineContract {
   choose(index: number): RenderInstruction {
     const node = this.currentNode();
     if (node.type !== 'choice') throw new Error('Not at a choice');
-    const options = node.choices.filter(c => !c.condition || this.eval(c.condition));
+    const options = node.choices.filter(c => {
+      const condOk = !c.condition || this.eval(c.condition);
+      const visOk = !c.visibleIf || this.eval(c.visibleIf);
+      return condOk && visOk;
+    });
     const target = options[index];
     if (!target) throw new Error('Invalid choice');
+    if (target.enabledIf !== undefined && !this.eval(target.enabledIf)) {
+      throw new Error('Choice disabled');
+    }
     this.jump(target.next);
     return this.peek();
   }
@@ -186,9 +193,16 @@ export class VNEngine implements EngineContract {
     }
 
     if (node.type === 'choice') {
-      const choices = node.choices
-        .filter(c => !c.condition || this.eval(c.condition))
-        .map((c, i) => ({ text: c.text, index: i }));
+      const visible = node.choices.filter(c => {
+        const condOk = !c.condition || this.eval(c.condition);
+        const visOk = !c.visibleIf || this.eval(c.visibleIf);
+        return condOk && visOk;
+      });
+      const choices = visible.map((c, i) => ({
+        text: c.text,
+        index: i,
+        disabled: c.enabledIf !== undefined ? !this.eval(c.enabledIf) : false,
+      }));
       return { kind: 'showChoices', choices };
     }
 
@@ -252,9 +266,16 @@ export class VNEngine implements EngineContract {
     const node = this.currentNode();
     if (node.type === 'dialogue') return { kind: 'showDialogue', speaker: node.speaker, text: node.text };
     if (node.type === 'choice') {
-      const choices = node.choices
-        .filter(c => !c.condition || this.eval(c.condition))
-        .map((c, i) => ({ text: c.text, index: i }));
+      const visible = node.choices.filter(c => {
+        const condOk = !c.condition || this.eval(c.condition);
+        const visOk = !c.visibleIf || this.eval(c.visibleIf);
+        return condOk && visOk;
+      });
+      const choices = visible.map((c, i) => ({
+        text: c.text,
+        index: i,
+        disabled: c.enabledIf !== undefined ? !this.eval(c.enabledIf) : false,
+      }));
       return { kind: 'showChoices', choices };
     }
     if (node.type === 'command') return { kind: 'runCommand', name: node.name, args: node.args };

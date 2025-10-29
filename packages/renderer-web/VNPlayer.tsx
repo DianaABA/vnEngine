@@ -575,8 +575,8 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
       );
     }
     case 'showChoices': {
-      const node = instruction as any;
-      const choices = (node.choices as Array<{ text: string; index: number }>) || [];
+  const node = instruction as any;
+  const choices = (node.choices as Array<{ text: string; index: number; disabled?: boolean }>) || [];
       // Countdown ring geometry
       const radius = 16;
       const circumference = 2 * Math.PI * radius;
@@ -614,7 +614,16 @@ export const VNPlayer: React.FC<VNPlayerProps> = ({ engine, assets }) => {
                 </div>
               )}
             {choices.map((choice, i) => (
-              <button key={`${i}-${choice.text}`} className="mb-2 px-4 py-2 bg-green-600 rounded focus:outline-none focus:ring" onClick={() => handleChoice(choice.index)} aria-label={`Choice ${i+1}`}>{i+1}. {choice.text}</button>
+              <button
+                key={`${i}-${choice.text}`}
+                className={`mb-2 px-4 py-2 rounded focus:outline-none focus:ring ${choice.disabled ? 'bg-gray-600 opacity-70 cursor-not-allowed' : 'bg-green-600'}`}
+                onClick={() => { if (!choice.disabled) handleChoice(choice.index); }}
+                disabled={!!choice.disabled}
+                aria-disabled={!!choice.disabled}
+                aria-label={`Choice ${i+1}`}
+              >
+                {i+1}. {choice.text}
+              </button>
             ))}
           </div>
         </div>
