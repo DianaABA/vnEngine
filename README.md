@@ -16,6 +16,7 @@ Modern, modular Visual Novel engine for web and native. Built with TypeScript an
 - Install and Build
 - Run the Example Apps
 - Using the Engine in Your App (local dev)
+- Docs: Authoring, DSL, Publishing
 - Commands System (engine ↔ renderer contract)
 - Milestones & Roadmap
 - Architecture Overview
@@ -179,6 +180,14 @@ export default function App() {
 	return <VNPlayer script={script} />
 }
 ```
+
+---
+
+# Docs
+
+- Authoring (no-code friendly): `docs/AUTHORING.md`
+- DSL syntax: `docs/DSL.md`
+- Publishing (Web & Mobile): `docs/PUBLISHING.md`
 
 ---
 
