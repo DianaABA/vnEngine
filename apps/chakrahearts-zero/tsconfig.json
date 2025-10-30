@@ -2,10 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@vn/core": ["../../packages/core/dist/src"],
-      "@vn/renderer-web": ["../../packages/renderer-web/dist"]
+      "@vn/core": ["../../packages/core/src/index.ts"],
+      "@vn/renderer-web": ["../../packages/renderer-web/src/index.ts"]
     }
   },
   "include": ["src"]

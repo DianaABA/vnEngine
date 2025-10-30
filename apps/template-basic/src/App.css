@@ -1,0 +1,323 @@
+/* VN Template Basic - Enhanced Styles */
+
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+  height: 100vh;
+  width: 100vw;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Loading Screen */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading-animation {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loading-dots span {
+  font-size: 1.5rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.3s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+.loading-screen h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 300;
+}
+
+.loading-screen p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.loading-progress {
+  width: 100%;
+  max-width: 300px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 2px;
+  animation: progressFill 3s ease-in-out infinite;
+}
+
+.loading-progress small {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+/* Error Screens */
+.error-screen, .error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: shake 2s ease-in-out infinite;
+}
+
+.error-screen h2, .error-boundary h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 400;
+}
+
+.error-message {
+  background: rgba(255,255,255,0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  max-width: 600px;
+  word-break: break-word;
+}
+
+.error-details {
+  margin: 1.5rem 0;
+  max-width: 600px;
+  text-align: left;
+}
+
+.error-details summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0.5rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.error-details summary:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.troubleshooting {
+  padding: 1rem;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.troubleshooting h4 {
+  margin: 1rem 0 0.5rem 0;
+  color: #fff;
+}
+
+.troubleshooting ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.troubleshooting li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.troubleshooting a {
+  color: #ffd700;
+  text-decoration: none;
+}
+
+.troubleshooting a:hover {
+  text-decoration: underline;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.retry-button, .inspect-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+}
+
+.retry-button:hover, .inspect-button:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+  transform: translateY(-1px);
+}
+
+.retry-button {
+  background: rgba(255,255,255,0.9);
+  color: #ee5a24;
+  font-weight: bold;
+}
+
+.retry-button:hover {
+  background: white;
+}
+
+/* Error boundary specific styles */
+.error-boundary pre {
+  background: rgba(0,0,0,0.3);
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: left;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+  max-width: 600px;
+  white-space: pre-wrap;
+}
+
+.error-boundary button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.9);
+  color: #ee5a24;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.error-boundary button:hover {
+  background: white;
+  transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes progressFill {
+  0% { width: 0%; }
+  50% { width: 100%; }
+  100% { width: 0%; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .loading-screen, .error-screen, .error-boundary {
+    padding: 1rem;
+  }
+  
+  .loading-screen h2, .error-screen h2, .error-boundary h2 {
+    font-size: 1.5rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .retry-button, .inspect-button {
+    width: 100%;
+    max-width: 250px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  .loading-dots span,
+  .progress-fill,
+  .error-icon {
+    animation: none;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+button:focus-visible {
+  outline: 3px solid rgba(255,255,255,0.6);
+  outline-offset: 2px;
+}
+
+summary:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.6);
+  outline-offset: 2px;
+}

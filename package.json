@@ -14,8 +14,10 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "prepare": "husky install",
-    "build:packages": "npm run -w @vn/core build && npm run -w @vn/renderer-web build",
-    "dev:zero": "npm run -w chakrahearts-zero dev"
+    "build:packages": "npm run -w @vn/core build && npm run -w @vn/renderer-web build && npm run -w @vnengine/assets build",
+    "dev:zero": "npm run -w chakrahearts-zero dev",
+    "dev:template": "npm run -w vn-template-basic dev",
+    "cli": "node packages/cli/bin/vn.js --help"
   },
   "devDependencies": {
     "@babel/core": "^7.28.5",

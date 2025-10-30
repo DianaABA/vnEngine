@@ -25,7 +25,39 @@ Modern, modular Visual Novel engine for web and native. Built with TypeScript an
 
 ---
 
-Quickstart
+## 🚀 Quick Start for Creators
+
+**Want to create a visual novel? This is the fastest way:**
+
+```bash
+# 1. Get the engine
+git clone https://github.com/DianaABA/vnEngine.git
+cd vnEngine
+
+# 2. Set up the engine (one-time setup)
+npm install
+npm run build:packages
+
+# 3. Create your visual novel project  
+node packages/cli/bin/vn.js create my-awesome-novel
+cd my-awesome-novel
+
+# 4. Install and run
+npm install
+npm run dev
+```
+
+**Your visual novel is now running at http://localhost:3000!** 🎉
+
+Edit `public/scripts/main.json` to change your story, and add images to `public/assets/` folders.
+
+📖 **New to VN creation?** Check out our [Getting Started Guide](docs/GETTING_STARTED.md)
+
+---
+
+## Developer Quickstart
+
+**Contributing to the engine or running examples:**
 
 - Requirements: Node.js 18+ and npm 8+.
 - Install deps: npm install
@@ -35,8 +67,9 @@ Quickstart
 - Run the demo web app (webpack): npm start (terminal prints the URL, e.g., http://localhost:8081)
 - Run the author app (Vite): npm run dev -w apps/author (http://localhost:5173)
 - Run the clean smoke test app (Vite): npm run dev:zero (defaults to http://localhost:3100; will use a free port if taken)
+- Try the starter template (Vite): npm run dev:template (http://localhost:3102)
 
-You can also use VS Code: F5 on “Launch Web App (webpack)” or “Launch Author App (Vite)”. Tasks for build, test, lint, and typecheck are included in .vscode/tasks.json.
+You can also use VS Code: F5 on "Launch Web App (webpack)" or "Launch Author App (Vite)". Tasks for build, test, lint, and typecheck are included in .vscode/tasks.json.
 
 ---
 
@@ -110,6 +143,14 @@ Opens http://localhost:3100 (or the port printed by Vite) and shows a compact sc
 - Variable-driven logic (setVar; expressions in conditions like affinity >= 3 and hasKey || route == 'A')
 
 This is ideal for quickly verifying engine + renderer features.
+
+- Starter Template (Vite):
+
+```powershell
+npm run dev:template
+```
+
+Opens http://localhost:3102 and loads `apps/template-basic/public/scripts/main.json` with backgrounds from `apps/template-basic/public/assets/backgrounds`.
 
 ---
 
@@ -220,6 +261,96 @@ export default function App() {
 	return <VNPlayer script={script} />
 }
 ```
+
+---
+
+## Author Workflow: Drop scripts and assets
+
+The engine accepts an author-friendly JSON format and normalizes it for runtime.
+
+Place your files like this (see `apps/template-basic` for a working example):
+
+```
+public/
+	assets/
+		backgrounds/
+			room.jpg
+			street.jpg
+	scripts/
+		main.json
+src/App.tsx
+```
+
+Map keys to files in `src/App.tsx` when constructing the `assets` prop for `VNPlayer`:
+
+```ts
+const assets = {
+	backgrounds: {
+		room: '/assets/backgrounds/room.jpg',
+		street: '/assets/backgrounds/street.jpg'
+	}
+}
+```
+
+Author-friendly script example (`public/scripts/main.json`):
+
+```json
+{
+	"startScene": "intro",
+	"scenes": [
+		{
+			"id": "intro",
+			"start": "n1",
+			"nodes": [
+				{ "type": "dialogue", "id": "n1", "speaker": "Ava", "text": "Hello!", "next": "end" },
+				{ "type": "end", "id": "end" }
+			]
+		}
+	]
+}
+```
+
+The loader also accepts already-normalized engine shape.
+
+---
+
+## 🛠️ VN CLI - Complete Project Management
+
+The VN CLI provides everything you need to create, develop, and deploy visual novels:
+
+### Project Creation
+```bash
+vn create my-novel              # Create a complete VN project with all dependencies
+vn init simple-project          # Create basic script structure only
+```
+
+### Development
+```bash
+vn dev                          # Start development server with hot reload
+vn build                        # Build optimized production version
+vn serve                        # Preview production build locally
+```
+
+### Asset Management
+```bash
+vn assets scan                  # Discover and catalog all project assets
+vn assets validate              # Check for missing assets referenced in scripts
+vn assets optimize              # Compress and optimize assets (coming soon)
+```
+
+### Quality Assurance
+```bash
+vn validate scripts/main.json   # Validate script syntax and structure
+```
+
+### Deployment
+```bash
+vn deploy github                # Deploy to GitHub Pages (guided setup)
+vn deploy netlify               # Deploy to Netlify (guided setup)
+vn deploy vercel                # Deploy to Vercel (guided setup)
+```
+
+The CLI handles all the complex setup so you can focus on creating your story!
 
 ---
 

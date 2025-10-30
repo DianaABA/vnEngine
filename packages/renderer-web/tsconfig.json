@@ -4,7 +4,6 @@
     "module": "ESNext",
     "lib": ["DOM", "ES2021"],
     "jsx": "react",
-    "moduleResolution": "Node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -13,11 +12,7 @@
     "strict": true,
     "noImplicitAny": true,
     "outDir": "dist",
-    "baseUrl": "./",
-    "paths": {
-      "@vn/core/*": ["../core/src/*"],
-      "@vn/core": ["../core/src/index.ts"]
-    }
+    "moduleResolution": "bundler"
   },
   "include": ["*.ts", "*.tsx", "src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]

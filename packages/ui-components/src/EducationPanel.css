@@ -1,0 +1,627 @@
+/* Educational Panel Styles */
+.education-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+.education-panel {
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.education-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: var(--background-color);
+}
+
+.education-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.education-tabs {
+  display: flex;
+  background: var(--background-color);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.education-tabs .tab {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 1rem;
+  font-weight: 500;
+  border-right: 1px solid var(--border-color);
+}
+
+.education-tabs .tab:last-child {
+  border-right: none;
+}
+
+.education-tabs .tab:hover {
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.education-tabs .tab.active {
+  background: var(--primary-color);
+  color: var(--background-color);
+}
+
+.education-content {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Chakras Tab Styles */
+.chakras-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chakras-intro h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.current-chakra-highlight {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: var(--background-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.current-chakra-highlight h4 {
+  margin: 0 0 1rem 0;
+}
+
+.chakras-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.chakra-card {
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  background: var(--background-color);
+  transition: var(--transition);
+}
+
+.chakra-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.chakra-card.current {
+  border-color: var(--accent-color);
+  background: var(--surface-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.chakra-color {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+
+.chakra-details h4 {
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.sanskrit {
+  font-size: 1.2rem;
+  color: var(--accent-color);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.chakra-properties {
+  margin-bottom: 1rem;
+}
+
+.chakra-properties p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.chakra-themes h5 {
+  color: var(--primary-color);
+  margin: 1rem 0 0.5rem 0;
+}
+
+.theme-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.theme-tag {
+  background: var(--primary-color);
+  color: var(--background-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.balance-states {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.balance-states h6 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.imbalanced h6 {
+  color: #dc3545;
+}
+
+.balanced h6 {
+  color: #28a745;
+}
+
+.balance-states ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+.balance-states li {
+  margin-bottom: 0.25rem;
+  color: var(--text-secondary);
+}
+
+/* Grief Stages Tab Styles */
+.grief-stages-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.grief-intro h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.important-note {
+  background: var(--surface-color);
+  border-left: 4px solid var(--accent-color);
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.important-note h4 {
+  color: var(--accent-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.current-stage-highlight {
+  background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  color: var(--background-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.stages-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stage-card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  transition: var(--transition);
+}
+
+.stage-card:hover {
+  border-color: var(--primary-color);
+  transform: translateX(10px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stage-card.current {
+  border-color: var(--accent-color);
+  background: var(--surface-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.stage-number {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--background-color);
+  flex-shrink: 0;
+}
+
+.stage-content {
+  flex: 1;
+}
+
+.stage-content h4 {
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.stage-description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.stage-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.characteristics h5,
+.healing-approaches h5 {
+  color: var(--accent-color);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.stage-details ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+.stage-details li {
+  margin-bottom: 0.25rem;
+  color: var(--text-secondary);
+}
+
+/* Philosophy Tab Styles */
+.philosophy-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.philosophy-intro h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.concept-card {
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  background: var(--background-color);
+  transition: var(--transition);
+}
+
+.concept-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.concept-card h4 {
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.origin {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.relevance {
+  margin-bottom: 1rem;
+}
+
+.relevance h5 {
+  color: var(--accent-color);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.key-ideas h5 {
+  color: var(--accent-color);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.key-ideas ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+.key-ideas li {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Practices Tab Styles */
+.practices-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.practices-intro h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.current-chakra-practices {
+  background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+  color: var(--background-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.current-chakra-practices h4 {
+  margin: 0 0 1rem 0;
+}
+
+.chakra-specific-practices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.practice-section h5 {
+  color: var(--background-color);
+  margin: 0 0 0.5rem 0;
+  opacity: 0.9;
+}
+
+.pose-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pose-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--background-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.practice-section ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+.practice-section li {
+  margin-bottom: 0.25rem;
+  color: var(--background-color);
+  opacity: 0.9;
+}
+
+.practices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.practice-card {
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  background: var(--background-color);
+  transition: var(--transition);
+}
+
+.practice-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.practice-card h4 {
+  color: var(--primary-color);
+  margin: 0 0 0.5rem 0;
+}
+
+.practice-steps,
+.practice-techniques {
+  margin-top: 1rem;
+}
+
+.practice-steps h5,
+.practice-techniques h5 {
+  color: var(--accent-color);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.practice-steps ol,
+.practice-techniques ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.practice-steps li,
+.practice-techniques li {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.practice-tips {
+  background: var(--surface-color);
+  border-left: 4px solid var(--accent-color);
+  padding: 1.5rem;
+  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+}
+
+.practice-tips h4 {
+  color: var(--accent-color);
+  margin: 0 0 1rem 0;
+}
+
+.practice-tips ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.9rem;
+}
+
+.practice-tips li {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .education-panel {
+    width: 98%;
+    max-height: 95vh;
+  }
+
+  .education-tabs {
+    flex-wrap: wrap;
+  }
+
+  .education-tabs .tab {
+    flex: 1 1 50%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .education-content {
+    padding: 1rem;
+    max-height: 70vh;
+  }
+
+  .chakras-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .concepts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .practices-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .balance-states,
+  .stage-details,
+  .chakra-specific-practices {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .stage-number {
+    align-self: center;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animation for opening */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.9);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+}
+
+/* Custom scrollbar for education content */
+.education-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.education-content::-webkit-scrollbar-track {
+  background: var(--surface-color);
+}
+
+.education-content::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+.education-content::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}

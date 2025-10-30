@@ -1,0 +1,445 @@
+/**
+ * vnEngine Enhanced VFX CSS
+ * Comprehensive visual effects system ported from ChakraHearts
+ * Includes screen shake, overlays, transitions, and cinematic effects
+ */
+
+/* Screen Shake Effects */
+@keyframes screenShakeSubtle {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1px, -1px); }
+  20% { transform: translate(-1px, 0px); }
+  30% { transform: translate(1px, 2px); }
+  40% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 2px); }
+  60% { transform: translate(-1px, 1px); }
+  70% { transform: translate(1px, 1px); }
+  80% { transform: translate(-1px, -1px); }
+  90% { transform: translate(1px, 2px); }
+}
+
+@keyframes screenShakeModerate {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2px, -2px); }
+  20% { transform: translate(-3px, 0px); }
+  30% { transform: translate(3px, 2px); }
+  40% { transform: translate(1px, -1px); }
+  50% { transform: translate(-1px, 2px); }
+  60% { transform: translate(-3px, 1px); }
+  70% { transform: translate(3px, 1px); }
+  80% { transform: translate(-1px, -1px); }
+  90% { transform: translate(1px, 2px); }
+}
+
+@keyframes screenShakeIntense {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, -2px); }
+  20% { transform: translate(-6px, 4px); }
+  30% { transform: translate(6px, 2px); }
+  40% { transform: translate(2px, -6px); }
+  50% { transform: translate(-2px, 6px); }
+  60% { transform: translate(-6px, 2px); }
+  70% { transform: translate(6px, 4px); }
+  80% { transform: translate(-2px, -4px); }
+  90% { transform: translate(2px, 6px); }
+}
+
+@keyframes screenShakeEarthquake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-8px, -4px) rotate(-1deg); }
+  20% { transform: translate(-10px, 8px) rotate(1deg); }
+  30% { transform: translate(10px, 4px) rotate(0deg); }
+  40% { transform: translate(4px, -10px) rotate(1deg); }
+  50% { transform: translate(-4px, 10px) rotate(-1deg); }
+  60% { transform: translate(-10px, 4px) rotate(0deg); }
+  70% { transform: translate(10px, 8px) rotate(-1deg); }
+  80% { transform: translate(-4px, -8px) rotate(1deg); }
+  90% { transform: translate(4px, 10px) rotate(0deg); }
+}
+
+/* Screen Shake Classes */
+.screen-shake-subtle {
+  animation: screenShakeSubtle 0.6s ease-in-out;
+}
+
+.screen-shake-moderate {
+  animation: screenShakeModerate 0.8s ease-in-out;
+}
+
+.screen-shake-intense {
+  animation: screenShakeIntense 1.2s ease-in-out;
+}
+
+.screen-shake-earthquake {
+  animation: screenShakeEarthquake 2s ease-in-out;
+}
+
+/* Background Overlay Effects */
+.ember-glow {
+  position: relative;
+}
+
+.ember-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, 
+    rgba(255, 69, 0, 0.3) 0%, 
+    rgba(255, 140, 0, 0.2) 30%, 
+    rgba(139, 69, 19, 0.1) 60%, 
+    transparent 100%);
+  pointer-events: none;
+  z-index: 10;
+  animation: emberPulse 3s ease-in-out;
+}
+
+@keyframes emberPulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.mystical-shimmer {
+  position: relative;
+}
+
+.mystical-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    rgba(138, 43, 226, 0.1) 0%, 
+    rgba(75, 0, 130, 0.2) 25%, 
+    rgba(0, 191, 255, 0.1) 50%, 
+    rgba(138, 43, 226, 0.2) 75%, 
+    rgba(75, 0, 130, 0.1) 100%);
+  background-size: 400% 400%;
+  animation: mysticalShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes mysticalShimmer {
+  0%, 100% { 
+    background-position: 0% 50%;
+    opacity: 0.3;
+  }
+  50% { 
+    background-position: 100% 50%;
+    opacity: 0.7;
+  }
+}
+
+/* Particle Effects */
+.dust-particles {
+  position: relative;
+}
+
+.dust-particles::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(139, 69, 19, 0.4), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(160, 82, 45, 0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(210, 180, 140, 0.4), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(139, 69, 19, 0.3), transparent);
+  background-repeat: repeat;
+  background-size: 150px 100px;
+  animation: dustFall 2s ease-out;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@keyframes dustFall {
+  0% { 
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  20% { 
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+/* UI Effects */
+.ui-flicker {
+  animation: uiFlicker 0.5s ease-in-out;
+}
+
+@keyframes uiFlicker {
+  0%, 100% { opacity: 1; }
+  25% { opacity: 0.7; }
+  50% { opacity: 0.3; }
+  75% { opacity: 0.8; }
+}
+
+.ui-glitch-red {
+  position: relative;
+  animation: glitchRed 0.3s ease-in-out;
+}
+
+@keyframes glitchRed {
+  0%, 100% { 
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% { 
+    transform: translate(-2px, 2px);
+    filter: hue-rotate(-90deg) saturate(2);
+  }
+  40% { 
+    transform: translate(-2px, -2px);
+    filter: hue-rotate(90deg) saturate(3);
+  }
+  60% { 
+    transform: translate(2px, 2px);
+    filter: hue-rotate(-90deg) saturate(2);
+  }
+  80% { 
+    transform: translate(2px, -2px);
+    filter: hue-rotate(90deg) saturate(3);
+  }
+}
+
+/* Transition Effects */
+.fade-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.blur-overlay {
+  filter: blur(0px);
+  transition: filter 0.3s ease-in-out;
+}
+
+.blur-overlay.active {
+  filter: blur(5px);
+}
+
+/* Motion Blur Effects */
+.motion-blur-slash {
+  animation: motionBlurSlash 0.4s ease-out;
+}
+
+@keyframes motionBlurSlash {
+  0% { 
+    transform: translateX(-10px) rotate(-5deg);
+    filter: blur(0px);
+  }
+  50% { 
+    transform: translateX(10px) rotate(5deg);
+    filter: blur(2px);
+  }
+  100% { 
+    transform: translateX(0) rotate(0deg);
+    filter: blur(0px);
+  }
+}
+
+.motion-blur-dodge {
+  animation: motionBlurDodge 0.4s ease-out;
+}
+
+@keyframes motionBlurDodge {
+  0% { 
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+  50% { 
+    transform: translateY(-20px) scale(0.95);
+    filter: blur(3px);
+  }
+  100% { 
+    transform: translateY(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+.motion-blur-tackle {
+  animation: motionBlurTackle 0.4s ease-out;
+}
+
+@keyframes motionBlurTackle {
+  0% { 
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  30% { 
+    transform: scale(1.1) translateZ(0);
+    filter: blur(1px);
+  }
+  70% { 
+    transform: scale(0.95) translateZ(0);
+    filter: blur(2px);
+  }
+  100% { 
+    transform: scale(1) translateZ(0);
+    filter: blur(0px);
+  }
+}
+
+/* Naga Phase Effects (Project-specific but can be customized) */
+.naga-phase-1 {
+  filter: hue-rotate(30deg) saturate(1.2);
+  animation: nagaAwaken 2s ease-in-out;
+}
+
+.naga-phase-2 {
+  filter: hue-rotate(60deg) saturate(1.4) brightness(1.1);
+  animation: nagaPower 1.5s ease-in-out;
+}
+
+.naga-phase-3 {
+  filter: hue-rotate(90deg) saturate(1.6) brightness(1.2);
+  animation: nagaRage 1s ease-in-out infinite;
+}
+
+@keyframes nagaAwaken {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes nagaPower {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes nagaRage {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    filter: hue-rotate(90deg) saturate(1.6) brightness(1.2);
+  }
+  25% { 
+    transform: scale(1.01) rotate(-0.5deg);
+    filter: hue-rotate(100deg) saturate(1.8) brightness(1.3);
+  }
+  75% { 
+    transform: scale(1.01) rotate(0.5deg);
+    filter: hue-rotate(80deg) saturate(1.4) brightness(1.1);
+  }
+}
+
+/* Ground Fire Effect */
+.ground-fire {
+  position: relative;
+}
+
+.ground-fire::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(0deg, 
+    rgba(255, 69, 0, 0.8) 0%, 
+    rgba(255, 140, 0, 0.6) 30%, 
+    rgba(255, 69, 0, 0.4) 60%, 
+    transparent 100%);
+  animation: groundFire 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes groundFire {
+  0%, 100% { 
+    opacity: 0.6;
+    transform: scaleY(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+}
+
+/* Utility Classes */
+.vfx-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.vfx-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.no-vfx {
+  animation: none !important;
+  filter: none !important;
+}
+
+.no-vfx::before,
+.no-vfx::after {
+  display: none !important;
+}
+
+/* Responsive VFX (reduce on mobile) */
+@media (max-width: 768px) {
+  .screen-shake-subtle,
+  .screen-shake-moderate,
+  .screen-shake-intense,
+  .screen-shake-earthquake {
+    animation-duration: 0.3s;
+  }
+  
+  .ember-glow::before,
+  .mystical-shimmer::before,
+  .dust-particles::before {
+    opacity: 0.5;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ember-glow::before,
+  .mystical-shimmer::before {
+    opacity: 0.3;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .screen-shake-subtle,
+  .screen-shake-moderate,
+  .screen-shake-intense,
+  .screen-shake-earthquake,
+  .motion-blur-slash,
+  .motion-blur-dodge,
+  .motion-blur-tackle,
+  .ui-flicker,
+  .ui-glitch-red {
+    animation: none;
+  }
+  
+  .ember-glow::before,
+  .mystical-shimmer::before,
+  .dust-particles::before {
+    animation: none;
+    opacity: 0.5;
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "startScene": "intro",
+  "scenes": [
+    {
+      "id": "intro",
+      "start": "n1",
+      "nodes": [
+        { "type": "command", "id": "b1", "name": "setBackground", "args": { "key": "room", "transition": { "type": "crossfade", "durationMs": 600 } }, "next": "n1" },
+        { "type": "dialogue", "id": "n1", "speaker": "Ava", "text": "Welcome to your new visual novel!", "next": "n2" },
+        { "type": "dialogue", "id": "n2", "text": "This template loads /scripts/main.json and assets from /assets.", "next": "c1" },
+        {
+          "type": "choice",
+          "id": "c1",
+          "choices": [
+            { "text": "Say hi", "next": "n3" },
+            { "text": "Be quiet (disabled until you greet)", "next": "n4", "enabledIf": "greeted" }
+          ]
+        },
+        { "type": "dialogue", "id": "n3", "speaker": "You", "text": "Hi!", "next": "set1" },
+        { "type": "command", "id": "set1", "name": "setFlag", "args": { "key": "greeted", "value": true }, "next": "c1" },
+        { "type": "dialogue", "id": "n4", "speaker": "Narrator", "text": "Nice. Let's finish.", "next": "end" },
+        { "type": "end", "id": "end" }
+      ]
+    }
+  ]
+}

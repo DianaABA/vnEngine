@@ -1,0 +1,65 @@
+{
+  "startScene": "intro",
+  "scenes": [
+    {
+      "id": "intro",
+      "start": "greeting",
+      "nodes": [
+        {
+          "type": "command",
+          "id": "setbg",
+          "name": "setBackground",
+          "args": {
+            "key": "room"
+          },
+          "next": "greeting"
+        },
+        {
+          "type": "dialogue",
+          "id": "greeting",
+          "speaker": "Narrator",
+          "text": "Welcome to your Visual Novel!",
+          "next": "choice1"
+        },
+        {
+          "type": "dialogue",
+          "id": "explain",
+          "text": "You can edit this story in public/scripts/main.json",
+          "next": "choice1"
+        },
+        {
+          "type": "choice",
+          "id": "choice1",
+          "choices": [
+            {
+              "text": "Start creating!",
+              "next": "create"
+            },
+            {
+              "text": "Learn more",
+              "next": "learn"
+            }
+          ]
+        },
+        {
+          "type": "dialogue",
+          "id": "create",
+          "speaker": "Creator",
+          "text": "Add your backgrounds to public/assets/backgrounds/",
+          "next": "end"
+        },
+        {
+          "type": "dialogue",
+          "id": "learn",
+          "speaker": "Guide",
+          "text": "Check out the documentation for more features!",
+          "next": "end"
+        },
+        {
+          "type": "end",
+          "id": "end"
+        }
+      ]
+    }
+  ]
+}

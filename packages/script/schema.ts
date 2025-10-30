@@ -25,9 +25,21 @@ export const ChoiceNodeSchema = VNNodeBaseSchema.extend({
 export const CommandNodeSchema = VNNodeBaseSchema.extend({
   type: z.literal('command'),
   command: z.enum([
-    'setBackground', 'playMusic', 'stopMusic', 'setFlag', 'showSprite', 'hideSprite'
+    'setBackground', 'playMusic', 'stopMusic', 'setFlag', 'showSprite', 'hideSprite',
+    // Enhanced commands from ChakraHearts
+    'vfx', 'unlockArt', 'unlockCodex', 'awardBadge', 'setVar', 'adjustRelationship',
+    'adjustStat', 'addItem', 'removeItem', 'playSFX', 'fadeToBlack', 'fadeIn'
   ] as const),
-    args: z.record(z.string(), z.unknown()).optional(),
+  args: z.record(z.string(), z.unknown()).optional(),
+  // Enhanced properties
+  effects: z.array(z.object({
+    type: z.string(),
+    path: z.string().optional(),
+    value: z.unknown().optional(),
+    id: z.string().optional(),
+    character: z.string().optional(),
+    delta: z.number().optional()
+  })).optional(),
   next: z.string().optional(),
 });
 

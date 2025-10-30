@@ -18,3 +18,7 @@ export type {
 export * from './ports';
 export * from './snapshot';
 export { loadScript } from './scriptLoader';
+
+// Enhanced features ported from ChakraHearts
+export * from './GameStateManager';
+export * from './VFXManager';

@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@vn/core": ["packages/core/dist/src/index.d.ts"],
+      "@vn/core/*": ["packages/core/src/*"],
+      "@vn/core/src/*": ["packages/core/src/*"]
+    }
+  },
+  "include": [
+    "packages/core/**/*.ts",
+    "packages/core/**/*.tsx",
+    "packages/renderer-web/**/*.ts",
+    "packages/renderer-web/**/*.tsx"
+  ],
+  "exclude": [
+    "apps/**",
+    "packages/**/tests/**"
+  ]
+}

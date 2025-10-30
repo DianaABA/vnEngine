@@ -1,0 +1,206 @@
+/* VN Engine Base Theme Variables */
+/* This file sets up the CSS custom properties that all components use */
+
+:root {
+  /* Default Modern Theme */
+  --vn-color-primary: #667eea;
+  --vn-color-secondary: #764ba2;
+  --vn-color-accent: #f093fb;
+  --vn-color-background: #0f0f23;
+  --vn-color-backgroundSecondary: #1a1a2e;
+  --vn-color-text: #ffffff;
+  --vn-color-textSecondary: #e2e8f0;
+  --vn-color-textMuted: #94a3b8;
+  --vn-color-border: #334155;
+  --vn-color-shadow: rgba(0, 0, 0, 0.5);
+  --vn-color-success: #10b981;
+  --vn-color-warning: #f59e0b;
+  --vn-color-error: #ef4444;
+  --vn-color-overlay: rgba(0, 0, 0, 0.8);
+
+  /* Typography */
+  --vn-font-primary: system-ui, -apple-system, sans-serif;
+  --vn-font-secondary: Georgia, serif;
+  --vn-font-monospace: 'Fira Code', monospace;
+
+  --vn-text-xs: 0.75rem;
+  --vn-text-sm: 0.875rem;
+  --vn-text-md: 1rem;
+  --vn-text-lg: 1.125rem;
+  --vn-text-xl: 1.25rem;
+  --vn-text-xxl: 1.5rem;
+
+  --vn-leading-tight: 1.25;
+  --vn-leading-normal: 1.5;
+  --vn-leading-relaxed: 1.75;
+
+  /* Spacing */
+  --vn-space-xs: 0.25rem;
+  --vn-space-sm: 0.5rem;
+  --vn-space-md: 1rem;
+  --vn-space-lg: 1.5rem;
+  --vn-space-xl: 2rem;
+  --vn-space-xxl: 3rem;
+
+  /* Border Radius */
+  --vn-radius-none: 0;
+  --vn-radius-sm: 0.25rem;
+  --vn-radius-md: 0.5rem;
+  --vn-radius-lg: 0.75rem;
+  --vn-radius-full: 9999px;
+
+  /* Shadows */
+  --vn-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --vn-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --vn-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --vn-shadow-glow: 0 0 20px rgba(102, 126, 234, 0.4);
+
+  /* Animations */
+  --vn-duration-fast: 150ms;
+  --vn-duration-normal: 300ms;
+  --vn-duration-slow: 500ms;
+}
+
+/* Base Styles for VN Components */
+* {
+  box-sizing: border-box;
+}
+
+.vn-ui {
+  font-family: var(--vn-font-primary);
+  color: var(--vn-color-text);
+  line-height: var(--vn-leading-normal);
+}
+
+/* Button Base Styles */
+.vn-button {
+  font-family: var(--vn-font-primary);
+  border: none;
+  border-radius: var(--vn-radius-md);
+  cursor: pointer;
+  transition: all var(--vn-duration-normal) ease;
+  font-size: var(--vn-text-md);
+  padding: var(--vn-space-sm) var(--vn-space-lg);
+  background: var(--vn-color-primary);
+  color: var(--vn-color-text);
+}
+
+.vn-button:hover {
+  background: var(--vn-color-accent);
+  transform: translateY(-1px);
+}
+
+.vn-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Input Base Styles */
+.vn-input {
+  font-family: var(--vn-font-secondary);
+  background: var(--vn-color-background);
+  border: 1px solid var(--vn-color-border);
+  border-radius: var(--vn-radius-md);
+  color: var(--vn-color-text);
+  padding: var(--vn-space-sm) var(--vn-space-md);
+  font-size: var(--vn-text-md);
+  transition: border-color var(--vn-duration-normal) ease;
+}
+
+.vn-input:focus {
+  outline: none;
+  border-color: var(--vn-color-accent);
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+/* Modal Base Styles */
+.vn-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--vn-color-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.vn-modal {
+  background: var(--vn-color-backgroundSecondary);
+  border: 2px solid var(--vn-color-border);
+  border-radius: var(--vn-radius-lg);
+  box-shadow: var(--vn-shadow-lg);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+/* Utility Classes */
+.vn-text-center { text-align: center; }
+.vn-text-left { text-align: left; }
+.vn-text-right { text-align: right; }
+
+.vn-flex { display: flex; }
+.vn-flex-col { flex-direction: column; }
+.vn-items-center { align-items: center; }
+.vn-justify-center { justify-content: center; }
+.vn-justify-between { justify-content: space-between; }
+
+.vn-w-full { width: 100%; }
+.vn-h-full { height: 100%; }
+
+.vn-opacity-0 { opacity: 0; }
+.vn-opacity-50 { opacity: 0.5; }
+.vn-opacity-100 { opacity: 1; }
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  :root {
+    --vn-text-xs: 0.625rem;
+    --vn-text-sm: 0.75rem;
+    --vn-text-md: 0.875rem;
+    --vn-text-lg: 1rem;
+    --vn-text-xl: 1.125rem;
+    --vn-text-xxl: 1.25rem;
+    
+    --vn-space-md: 0.75rem;
+    --vn-space-lg: 1rem;
+    --vn-space-xl: 1.25rem;
+    --vn-space-xxl: 1.75rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --vn-color-text: #ffffff;
+    --vn-color-background: #000000;
+    --vn-color-border: #ffffff;
+  }
+}
+
+/* Dark Mode Support (for systems that don't use the theme provider) */
+@media (prefers-color-scheme: light) {
+  :root {
+    --vn-color-background: #ffffff;
+    --vn-color-backgroundSecondary: #f8fafc;
+    --vn-color-text: #1e293b;
+    --vn-color-textSecondary: #475569;
+    --vn-color-textMuted: #64748b;
+    --vn-color-border: #e2e8f0;
+    --vn-color-overlay: rgba(255, 255, 255, 0.8);
+  }
+}
