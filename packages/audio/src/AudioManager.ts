@@ -276,7 +276,19 @@ export class AudioManager {
 
   // Update volume settings
   public setVolume(category: keyof AudioConfig, volume: number) {
-    this.config[category] = Math.max(0, Math.min(1, volume));
+    const clampedVolume = Math.max(0, Math.min(1, volume));
+    
+    if (category === 'bgmVolume') {
+      this.config.bgmVolume = clampedVolume;
+    } else if (category === 'sfxVolume') {
+      this.config.sfxVolume = clampedVolume;
+    } else if (category === 'voiceVolume') {
+      this.config.voiceVolume = clampedVolume;
+    } else if (category === 'masterVolume') {
+      this.config.masterVolume = clampedVolume;
+    } else if (category === 'muted') {
+      this.config.muted = volume > 0.5; // Treat as boolean
+    }
     
     // Apply to all tracks of this category
     this.tracks.forEach((audio, trackId) => {

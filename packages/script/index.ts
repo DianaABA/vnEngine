@@ -47,6 +47,26 @@ export {
   processEffects 
 };
 
-// Export enhanced schemas
-export * from './enhanced-schema';
-export * from './schema';
+// Export enhanced schemas (renamed to avoid conflicts)
+export { 
+  EpisodeScriptSchema,
+  SceneSchema,
+  StepSchema,
+  ChoiceOptionSchema as EnhancedChoiceOptionSchema,
+  EffectSchema,
+  CharacterSchema
+} from './enhanced-schema';
+
+// Export legacy schemas (keep original names for backward compatibility)
+export {
+  VNNodeBaseSchema,
+  DialogueNodeSchema,
+  ChoiceNodeSchema as LegacyChoiceNodeSchema,
+  ChoiceOptionSchema,
+  CommandNodeSchema,
+  BranchNodeSchema,
+  EndNodeSchema,
+  VNNodeSchema,
+  VNSceneSchema,
+  GameScriptSchema
+} from './schema';

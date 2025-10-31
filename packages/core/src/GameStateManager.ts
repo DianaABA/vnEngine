@@ -64,7 +64,8 @@ export class GameStateManager {
   private static instances: Map<string, GameStateManager> = new Map();
   private gameState: GameState;
   private rollbackHistory: GameState[] = [];
-  private autoSaveTimer: NodeJS.Timeout | null = null;
+  // Use a cross-environment-safe timer type that works in Node and browsers
+  private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
   private static readonly MAX_MANUAL_SLOTS = 24;
   private projectName: string;
   private episodeRegistry: EpisodeMetadata[] = [];
