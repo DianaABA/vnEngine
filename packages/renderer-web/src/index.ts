@@ -9,3 +9,4 @@ export * from '../assets'
 export * from './hooks/useAudio'
 export * from './hooks/useVFX'
 export * from './hooks/useAssets'
+export * from './hooks/useAccessibility';

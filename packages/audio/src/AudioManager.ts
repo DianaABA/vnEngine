@@ -28,12 +28,16 @@ export class AudioManager {
     bgmVolume: 0.7,
     sfxVolume: 0.8,
     voiceVolume: 0.9,
-    masterVolume: 1.0,
+    // Soft limiter default (~-2 dB)
+    masterVolume: 0.79,
     muted: false
   };
   
   private fadeIntervals: Map<string, number> = new Map();
   private audioContext: AudioContext | null = null;
+  // Standardized fade durations
+  private static readonly FADE_MS = 800;
+  private static readonly MAX_OUTPUT = 1.0;
 
   constructor() {
     // Load saved audio settings
@@ -97,7 +101,7 @@ export class AudioManager {
     });
   }
 
-  // Apply volume settings based on category
+  // Apply volume settings based on category (with soft limiter)
   private applyVolumeSettings(audio: HTMLAudioElement, category: AudioTrack['category']) {
     if (this.config.muted) {
       audio.volume = 0;
@@ -122,7 +126,10 @@ export class AudioManager {
         categoryVolume = 1.0;
     }
 
-    audio.volume = categoryVolume * this.config.masterVolume;
+    const raw = categoryVolume * this.config.masterVolume;
+    // Soft limiter and hard cap
+    const limited = Math.min(raw, AudioManager.MAX_OUTPUT);
+    audio.volume = Math.max(0, Math.min(1, limited));
   }
 
   // Play a track
@@ -140,7 +147,7 @@ export class AudioManager {
     if (fadeIn) {
       audio.volume = 0;
       audio.play();
-      this.fadeIn(trackId, 1000); // 1 second fade
+      this.fadeIn(trackId, AudioManager.FADE_MS); // standardized fade
     } else {
       audio.play();
     }
@@ -156,7 +163,7 @@ export class AudioManager {
       }
 
       if (fadeOut) {
-        this.fadeOut(trackId, 1000).then(() => {
+        this.fadeOut(trackId, AudioManager.FADE_MS).then(() => {
           audio.pause();
           audio.currentTime = 0;
           resolve();
@@ -290,10 +297,8 @@ export class AudioManager {
       this.config.muted = volume > 0.5; // Treat as boolean
     }
     
-    // Apply to all tracks of this category
-    this.tracks.forEach((audio, trackId) => {
-      this.updateTrackVolume(trackId);
-    });
+    // Apply to all tracks
+    this.tracks.forEach((_audio, trackId) => this.updateTrackVolume(trackId));
     
     this.saveSettings();
   }
@@ -326,7 +331,9 @@ export class AudioManager {
       if (muted) {
         audio.volume = 0;
       } else {
-        const category = this.getTrackCategory(audio.src);
+        // Track category resolution by ID where possible
+        const id = Array.from(this.tracks.entries()).find(([_, a]) => a === audio)?.[0] || audio.src;
+        const category = this.getTrackCategory(id);
         this.applyVolumeSettings(audio, category);
       }
     });
@@ -365,6 +372,19 @@ export class AudioManager {
     // Close audio context
     if (this.audioContext) {
       this.audioContext.close();
+    }
+  }
+
+  // Gesture unlock helper to resume audio on user interaction
+  public static async handleUserInteraction(manager?: AudioManager): Promise<void> {
+    try {
+      if (typeof window === 'undefined') return;
+      const ctx = manager?.audioContext || (window as any).audioContext || null;
+      if (ctx && ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+    } catch {
+      // no-op
     }
   }
 

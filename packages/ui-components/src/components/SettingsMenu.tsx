@@ -13,6 +13,11 @@ export interface SettingsData {
   textSize: 'small' | 'medium' | 'large'
   theme: ThemeName
   language?: string
+  // Accessibility & presentation
+  textScale?: number
+  highContrast?: boolean
+  dyslexicFont?: boolean
+  speakerFocus?: boolean
 }
 
 export interface SettingsMenuProps {
@@ -34,7 +39,11 @@ const defaultSettings: SettingsData = {
   fullscreen: false,
   textSize: 'medium',
   theme: 'modern',
-  language: 'en'
+  language: 'en',
+  textScale: 100,
+  highContrast: false,
+  dyslexicFont: false,
+  speakerFocus: true
 }
 
 const SettingsMenu: React.FC<SettingsMenuProps> = ({ 
@@ -227,6 +236,22 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 <option value="large">Large</option>
               </select>
             </div>
+
+            <div className="vn-setting-item">
+              <label htmlFor="text-scale">Text Scale</label>
+              <div className="vn-slider-container">
+                <input
+                  id="text-scale"
+                  type="range"
+                  min="90"
+                  max="130"
+                  step="1"
+                  value={settings.textScale ?? 100}
+                  onChange={(e) => handleSettingChange('textScale', parseInt(e.target.value))}
+                />
+                <span>{settings.textScale ?? 100}%</span>
+              </div>
+            </div>
           </div>
 
           {/* Display Settings */}
@@ -278,6 +303,36 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 </select>
               </div>
             )}
+
+            <div className="vn-setting-item">
+              <label htmlFor="high-contrast">High Contrast</label>
+              <input
+                id="high-contrast"
+                type="checkbox"
+                checked={!!settings.highContrast}
+                onChange={(e) => handleSettingChange('highContrast', e.target.checked)}
+              />
+            </div>
+
+            <div className="vn-setting-item">
+              <label htmlFor="dyslexic-font">Dyslexic-friendly Font</label>
+              <input
+                id="dyslexic-font"
+                type="checkbox"
+                checked={!!settings.dyslexicFont}
+                onChange={(e) => handleSettingChange('dyslexicFont', e.target.checked)}
+              />
+            </div>
+
+            <div className="vn-setting-item">
+              <label htmlFor="speaker-focus">Speaker Focus (dim others)</label>
+              <input
+                id="speaker-focus"
+                type="checkbox"
+                checked={settings.speakerFocus !== false}
+                onChange={(e) => handleSettingChange('speakerFocus', e.target.checked)}
+              />
+            </div>
           </div>
         </div>
 

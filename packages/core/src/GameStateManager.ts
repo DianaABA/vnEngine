@@ -37,6 +37,11 @@ export interface GamePreferences {
   textSpeed: number;
   autoAdvanceEnabled: boolean;
   autoAdvanceDelay: number;
+  // Accessibility & presentation
+  textScale?: number; // 90-130 (%)
+  highContrast?: boolean;
+  dyslexicFont?: boolean;
+  speakerFocus?: boolean;
 }
 
 export interface SaveData {
@@ -67,6 +72,9 @@ export class GameStateManager {
   // Use a cross-environment-safe timer type that works in Node and browsers
   private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
   private static readonly MAX_MANUAL_SLOTS = 24;
+  // Reserve 991-993 for quick saves
+  private static readonly QUICK_SLOT_BASE = 991;
+  private static readonly QUICK_SLOT_COUNT = 3;
   private projectName: string;
   private episodeRegistry: EpisodeMetadata[] = [];
 
@@ -112,7 +120,11 @@ export class GameStateManager {
         maxRollbackSteps: 50,
         textSpeed: 1.0,
         autoAdvanceEnabled: false,
-        autoAdvanceDelay: 3000
+        autoAdvanceDelay: 3000,
+        textScale: 100,
+        highContrast: false,
+        dyslexicFont: false,
+        speakerFocus: true
       },
       history: [],
       codexUnlocked: [],
@@ -321,7 +333,7 @@ export class GameStateManager {
       gameState: serializableState,
       timestamp: new Date().toISOString(),
       episodeTitle: this.getEpisodeTitle(this.gameState.currentEpisode),
-      sceneTitle: this.gameState.currentScene,
+      sceneTitle: this.formatSceneTitle(this.gameState.currentScene, this.gameState.currentLine),
       isQuickSave: type === 'quick',
       isAutoSave: type === 'auto',
       projectName: this.projectName
@@ -330,7 +342,11 @@ export class GameStateManager {
     this.saveToLocalStorage(`save_${slotId}`, saveData);
     
     if (type === 'quick') {
-      this.saveToLocalStorage('quickSave', saveData);
+      // Also store named quick slots if within range
+      const idx = slotId - GameStateManager.QUICK_SLOT_BASE + 1;
+      if (idx >= 1 && idx <= GameStateManager.QUICK_SLOT_COUNT) {
+        this.saveToLocalStorage(`quickSave${idx}`, saveData);
+      }
     }
     
     if (type === 'auto') {
@@ -354,12 +370,15 @@ export class GameStateManager {
     return false;
   }
 
-  quickSave(): SaveData {
-    return this.saveGame(999, 'quick');
+  // Quick save slots (1-3) map to IDs 991-993
+  quickSave(slot: 1 | 2 | 3 = 1): SaveData {
+    const slotId = GameStateManager.QUICK_SLOT_BASE + (slot - 1);
+    return this.saveGame(slotId, 'quick');
   }
 
-  quickLoad(): boolean {
-    const quickSave = this.loadFromLocalStorage('quickSave');
+  quickLoad(slot: 1 | 2 | 3 = 1): boolean {
+    const slotId = GameStateManager.QUICK_SLOT_BASE + (slot - 1);
+    const quickSave = this.loadFromLocalStorage(`save_${slotId}`) || this.loadFromLocalStorage(`quickSave${slot}`);
     if (quickSave && quickSave.gameState) {
       const gs = quickSave.gameState;
       this.gameState = {
@@ -504,10 +523,11 @@ export class GameStateManager {
       }
     }
     
-    // Add quick save
-    const quickSave = this.loadFromLocalStorage('quickSave');
-    if (quickSave) {
-      saves.push(quickSave);
+    // Add quick saves (1-3)
+    for (let q = 1; q <= GameStateManager.QUICK_SLOT_COUNT; q++) {
+      const slotId = GameStateManager.QUICK_SLOT_BASE + (q - 1);
+      const quickSave = this.loadFromLocalStorage(`save_${slotId}`) || this.loadFromLocalStorage(`quickSave${q}`);
+      if (quickSave) saves.push(quickSave);
     }
     
     // Add auto save
@@ -530,7 +550,11 @@ export class GameStateManager {
     for (let i = 1; i <= GameStateManager.MAX_MANUAL_SLOTS; i++) {
       localStorage.removeItem(`${this.projectName}_save_${i}`);
     }
-    localStorage.removeItem(`${this.projectName}_quickSave`);
+    for (let q = 1; q <= GameStateManager.QUICK_SLOT_COUNT; q++) {
+      const slotId = GameStateManager.QUICK_SLOT_BASE + (q - 1);
+      localStorage.removeItem(`${this.projectName}_save_${slotId}`);
+      localStorage.removeItem(`${this.projectName}_quickSave${q}`);
+    }
     localStorage.removeItem(`${this.projectName}_autoSave`);
     localStorage.removeItem(`${this.projectName}_gameState`);
   }
@@ -542,5 +566,12 @@ export class GameStateManager {
   // Project Management
   getProjectName(): string {
     return this.projectName;
+  }
+
+  // Helpers
+  private formatSceneTitle(scene: string, line: number): string {
+    if (!scene) return '';
+    const ln = Number.isFinite(line) && line >= 0 ? ` (line ${line})` : '';
+    return `${scene}${ln}`;
   }
 }
