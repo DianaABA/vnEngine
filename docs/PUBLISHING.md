@@ -23,6 +23,16 @@ npm run -w chakrahearts-zero build
 - Deploy the `apps/chakrahearts-zero/dist` folder to any static host (GitHub Pages, Netlify, Vercel, S3, Firebase Hosting).
 - Optional PWA: add a web app manifest and a service worker (workbox) for offline support.
 
+### Accessibility setup (web)
+- The renderer-web exposes a `useAccessibility` hook to apply global reading preferences (text scale, high contrast, dyslexic font).
+- Ensure your CSS honors `html.high-contrast`, `html.dyslexic-font`, and the `--font-size-scale` variable. The renderer ships sensible defaults.
+- If you use speaker focus, wrap your portrait area with `.speaker-focus` and mark the active portrait element with `.speaking`.
+
+### Save/Load UX (web)
+- Quick slots 1–3: Expose simple buttons or shortcuts that call `engine.quickSave(1..3)` and `engine.quickLoad(1..3)`.
+- Autosave: Display the autosave entry (if present) and make it clear it updates automatically.
+- Thumbnails: Capture a small canvas/screenshot of the scene to attach to save metadata for a nicer load screen.
+
 ## Mobile (React Native / Expo)
 
 There is a prototype `renderer-native` and `apps/native-demo`. For a friendly path, use Expo:
@@ -66,6 +76,7 @@ npx expo run:ios
 - Keep image assets under 2048px for mobile performance; use WebP/AVIF when possible
 - Use looped OGG/MP3 for music; short WAV/OGG for SFX
 - Test on both light and dark environments; include a safe area on mobile UIs
+ - Avoid 0 dBFS-peaking audio; the engine applies a soft limiter but clean masters sound best
 
 ## Coming soon
 - One-click Export in the Author App (build web and mobile packages from a single project)

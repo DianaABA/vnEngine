@@ -443,3 +443,20 @@
     opacity: 0.5;
   }
 }
+
+/* ========== SPEAKER FOCUS UTILITIES ========== */
+/* Apply to a container wrapping character portraits. Mark the active speaker with .speaking. */
+.speaker-focus .portrait {
+  transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+.speaker-focus .portrait:not(.speaking) {
+  opacity: 0.6;
+  filter: grayscale(20%) brightness(0.85) contrast(0.95);
+}
+
+/* Vision overlays can also be dimmed when inactive */
+.speaker-focus .vision-layer:not(.speaking) {
+  opacity: 0.7;
+  filter: brightness(0.85) saturate(0.9);
+}

@@ -327,13 +327,11 @@ export class AudioManager {
   // Mute/unmute all audio
   public setMuted(muted: boolean) {
     this.config.muted = muted;
-    this.tracks.forEach((audio) => {
+    this.tracks.forEach((audio, trackId) => {
       if (muted) {
         audio.volume = 0;
       } else {
-        // Track category resolution by ID where possible
-        const id = Array.from(this.tracks.entries()).find(([_, a]) => a === audio)?.[0] || audio.src;
-        const category = this.getTrackCategory(id);
+        const category = this.getTrackCategory(trackId);
         this.applyVolumeSettings(audio, category);
       }
     });

@@ -23,7 +23,7 @@ export interface SettingsData {
 export interface SettingsMenuProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (settings: SettingsData) => void
+  onSave: (value: SettingsData) => void
   currentSettings: SettingsData
   availableLanguages?: Array<{ code: string; name: string }>
   enableThemeSelection?: boolean
@@ -56,11 +56,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   enableFullscreenToggle = true
 }) => {
   const { setTheme } = useTheme()
-  const [settings, setSettings] = useState<SettingsData>(currentSettings || defaultSettings)
+  const [prefs, setPrefs] = useState<SettingsData>(currentSettings || defaultSettings)
   const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
-    setSettings(currentSettings || defaultSettings)
+    setPrefs(currentSettings || defaultSettings)
     setHasChanges(false)
   }, [currentSettings])
 
@@ -78,7 +78,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   }, [isOpen])
 
   const handleSettingChange = (key: keyof SettingsData, value: any) => {
-    setSettings(prev => ({
+    setPrefs(prev => ({
       ...prev,
       [key]: value
     }))
@@ -91,13 +91,13 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   }
 
   const handleSave = () => {
-    onSave(settings)
+    onSave(prefs)
     setHasChanges(false)
     onClose()
   }
 
   const handleReset = () => {
-    setSettings(defaultSettings)
+    setPrefs(defaultSettings)
     setTheme(defaultSettings.theme)
     setHasChanges(true)
   }
@@ -105,11 +105,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
   const handleCancel = () => {
     if (hasChanges) {
       // Revert theme if it was changed
-      if (settings.theme !== currentSettings?.theme) {
+      if (prefs.theme !== currentSettings?.theme) {
         setTheme(currentSettings?.theme || 'modern')
       }
     }
-    setSettings(currentSettings || defaultSettings)
+    setPrefs(currentSettings || defaultSettings)
     setHasChanges(false)
     onClose()
   }
@@ -149,10 +149,10 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   type="range"
                   min="0"
                   max="100"
-                  value={settings.masterVolume}
+                  value={prefs.masterVolume}
                   onChange={(e) => handleSettingChange('masterVolume', parseInt(e.target.value))}
                 />
-                <span>{settings.masterVolume}%</span>
+                <span>{prefs.masterVolume}%</span>
               </div>
             </div>
 
@@ -164,10 +164,10 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   type="range"
                   min="0"
                   max="100"
-                  value={settings.musicVolume}
+                  value={prefs.musicVolume}
                   onChange={(e) => handleSettingChange('musicVolume', parseInt(e.target.value))}
                 />
-                <span>{settings.musicVolume}%</span>
+                <span>{prefs.musicVolume}%</span>
               </div>
             </div>
 
@@ -179,10 +179,10 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   type="range"
                   min="0"
                   max="100"
-                  value={settings.sfxVolume}
+                  value={prefs.sfxVolume}
                   onChange={(e) => handleSettingChange('sfxVolume', parseInt(e.target.value))}
                 />
-                <span>{settings.sfxVolume}%</span>
+                <span>{prefs.sfxVolume}%</span>
               </div>
             </div>
           </div>
@@ -199,11 +199,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   type="range"
                   min="10"
                   max="100"
-                  value={settings.textSpeed}
+                  value={prefs.textSpeed}
                   onChange={(e) => handleSettingChange('textSpeed', parseInt(e.target.value))}
                 />
                 <span className="vn-speed-label">
-                  {getSpeedLabel(settings.textSpeed)}
+                  {getSpeedLabel(prefs.textSpeed)}
                 </span>
               </div>
             </div>
@@ -217,10 +217,10 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   min="1000"
                   max="8000"
                   step="500"
-                  value={settings.autoPlayDelay}
+                  value={prefs.autoPlayDelay}
                   onChange={(e) => handleSettingChange('autoPlayDelay', parseInt(e.target.value))}
                 />
-                <span>{settings.autoPlayDelay / 1000}s</span>
+                <span>{prefs.autoPlayDelay / 1000}s</span>
               </div>
             </div>
 
@@ -228,7 +228,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <label htmlFor="text-size">Text Size</label>
               <select 
                 id="text-size"
-                value={settings.textSize}
+                value={prefs.textSize}
                 onChange={(e) => handleSettingChange('textSize', e.target.value)}
               >
                 <option value="small">Small</option>
@@ -246,10 +246,10 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                   min="90"
                   max="130"
                   step="1"
-                  value={settings.textScale ?? 100}
+                  value={prefs.textScale ?? 100}
                   onChange={(e) => handleSettingChange('textScale', parseInt(e.target.value))}
                 />
-                <span>{settings.textScale ?? 100}%</span>
+                <span>{prefs.textScale ?? 100}%</span>
               </div>
             </div>
           </div>
@@ -264,7 +264,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 <input
                   id="fullscreen"
                   type="checkbox"
-                  checked={settings.fullscreen}
+                  checked={prefs.fullscreen}
                   onChange={(e) => handleSettingChange('fullscreen', e.target.checked)}
                 />
               </div>
@@ -275,7 +275,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 <label htmlFor="theme">Theme</label>
                 <select 
                   id="theme"
-                  value={settings.theme}
+                  value={prefs.theme}
                   onChange={(e) => handleSettingChange('theme', e.target.value as ThemeName)}
                 >
                   {Object.keys(themes).map((themeName) => (
@@ -292,7 +292,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 <label htmlFor="language">Language</label>
                 <select 
                   id="language"
-                  value={settings.language}
+                  value={prefs.language}
                   onChange={(e) => handleSettingChange('language', e.target.value)}
                 >
                   {availableLanguages.map((lang) => (
@@ -309,7 +309,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <input
                 id="high-contrast"
                 type="checkbox"
-                checked={!!settings.highContrast}
+                checked={!!prefs.highContrast}
                 onChange={(e) => handleSettingChange('highContrast', e.target.checked)}
               />
             </div>
@@ -319,7 +319,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <input
                 id="dyslexic-font"
                 type="checkbox"
-                checked={!!settings.dyslexicFont}
+                checked={!!prefs.dyslexicFont}
                 onChange={(e) => handleSettingChange('dyslexicFont', e.target.checked)}
               />
             </div>
@@ -329,7 +329,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
               <input
                 id="speaker-focus"
                 type="checkbox"
-                checked={settings.speakerFocus !== false}
+                checked={prefs.speakerFocus !== false}
                 onChange={(e) => handleSettingChange('speakerFocus', e.target.checked)}
               />
             </div>

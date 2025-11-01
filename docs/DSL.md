@@ -38,6 +38,11 @@ Kai: Shall we begin?
 - Background: `fade`, `crossfade`, `slideLeft|Right|Up|Down`, `panZoom`
 - Sprites: `fade`, `move`, `scale`
 
+## Audio behavior defaults (engine)
+- Smooth fades: Music/SFX playback and stop calls are standardized to use gentle fades/crossfades by default in the web renderer.
+- Soft limiter: Output volume uses a soft limiter to avoid clipping. Keep source files below 0 dBFS; engine caps final gain around -2 dB.
+- Auto-music is opt-in: Automatic per-scene music helpers in the web renderer are disabled by default. Apps must opt in when using `useEpisodeAudio`/`useSceneAudio` helpers.
+
 ## Variables and Conditions (planned)
 - Set variable: `[set var karma = 1]`
 - Increment: `[inc var karma by 1]`

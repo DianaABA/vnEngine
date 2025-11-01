@@ -169,10 +169,11 @@ The React renderer (`@vn/renderer-web` → `VNPlayer`) includes built-in UX help
 	- UI: Skip toggle
 	- Shortcut: S
 	- Behavior: Skips non-choice dialogue/commands; stops at choices/end and honors transitions
-- Quick Save/Load: A single quick slot that stores engine snapshot + a thumbnail
-	- UI: Save / Load buttons
-	- Storage: localStorage key `vn_quick_slot_1`
-	- Thumbnail: 320x180 image generated from background and current dialogue overlay
+- Quick Save/Load: Three quick slots (1–3) plus autosave, storing engine snapshots and optional thumbnails
+	- UI: Save / Load buttons or shortcuts for slots 1–3
+	- API: `engine.quickSave(1|2|3)` / `engine.quickLoad(1|2|3)`
+	- Autosave: May be displayed separately; updated automatically by the app
+	- Thumbnail: e.g., 320x180 image captured from the scene
 
 	- Timed Choices: Auto-select after timeout
 		- UI: Countdown ring shows remaining seconds
@@ -182,6 +183,14 @@ Visual transitions (web):
 - Background: fade, crossfade, slide (left/right/up/down) with duration
 - Sprites: fade-in for new sprites and smooth move updates when re-showing the same id
 - Audio: fade in/out on play/stop
+
+### Accessibility
+- Global reading preferences:
+	- Text scale via CSS variable `--font-size-scale`
+	- `html.high-contrast` class for stronger contrast and outlines
+	- `html.dyslexic-font` class to switch font if provided by the app
+- Speaker focus utilities: Add `.speaker-focus` around portraits to dim non-speaking sprites; mark the active one with `.speaking`.
+- Hook: `useAccessibility(preferences)` applies classes and variables based on engine preferences.
 
 ---
 
@@ -311,6 +320,13 @@ Author-friendly script example (`public/scripts/main.json`):
 ```
 
 The loader also accepts already-normalized engine shape.
+
+---
+
+## Audio defaults and behavior
+- Standardized fades and crossfades for smoother transitions.
+- Soft limiter on output to avoid clipping; aim to master assets cleanly below 0 dBFS.
+- Auto-music is opt-in: helpers that infer music from scenes are disabled by default; apps must enable explicitly when using audio hooks.
 
 ---
 

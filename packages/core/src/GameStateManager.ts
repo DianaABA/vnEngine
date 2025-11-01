@@ -547,16 +547,20 @@ export class GameStateManager {
     this.rollbackHistory = [];
     
     // Clear saves but keep preferences
-    for (let i = 1; i <= GameStateManager.MAX_MANUAL_SLOTS; i++) {
-      localStorage.removeItem(`${this.projectName}_save_${i}`);
+    try {
+      for (let i = 1; i <= GameStateManager.MAX_MANUAL_SLOTS; i++) {
+        localStorage.removeItem(`${this.projectName}_save_${i}`);
+      }
+      for (let q = 1; q <= GameStateManager.QUICK_SLOT_COUNT; q++) {
+        const slotId = GameStateManager.QUICK_SLOT_BASE + (q - 1);
+        localStorage.removeItem(`${this.projectName}_save_${slotId}`);
+        localStorage.removeItem(`${this.projectName}_quickSave${q}`);
+      }
+      localStorage.removeItem(`${this.projectName}_autoSave`);
+      localStorage.removeItem(`${this.projectName}_gameState`);
+    } catch {
+      // SSR / RN: localStorage may be unavailable; ignore
     }
-    for (let q = 1; q <= GameStateManager.QUICK_SLOT_COUNT; q++) {
-      const slotId = GameStateManager.QUICK_SLOT_BASE + (q - 1);
-      localStorage.removeItem(`${this.projectName}_save_${slotId}`);
-      localStorage.removeItem(`${this.projectName}_quickSave${q}`);
-    }
-    localStorage.removeItem(`${this.projectName}_autoSave`);
-    localStorage.removeItem(`${this.projectName}_gameState`);
   }
 
   getMaxManualSlots(): number {

@@ -186,12 +186,12 @@ export function useAudio(audioManager?: AudioManager): UseAudioReturn {
 }
 
 // Convenience hooks for specific audio contexts
-export function useMenuAudio(audioManager?: AudioManager) {
+export function useMenuAudio(audioManager?: AudioManager, options?: { auto?: boolean }) {
   const audio = useAudio(audioManager);
 
   useEffect(() => {
+    if (!options?.auto) return; // opt-in only
     let isMounted = true;
-    
     const startMenuMusic = async () => {
       if (isMounted && !audio.isLoading) {
         try {
@@ -201,24 +201,20 @@ export function useMenuAudio(audioManager?: AudioManager) {
         }
       }
     };
-
     startMenuMusic();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [audio.isLoading, audio.playBGM]);
+    return () => { isMounted = false; };
+  }, [audio.isLoading, audio.playBGM, options?.auto]);
 
   return audio;
 }
 
-export function useEpisodeAudio(episodeId: string, audioManager?: AudioManager) {
+export function useEpisodeAudio(episodeId: string, audioManager?: AudioManager, options?: { auto?: boolean }) {
   const audio = useAudio(audioManager);
 
-  // Auto-play episode-appropriate music when episode changes
+  // Auto-play episode-appropriate music only when opted-in
   useEffect(() => {
+    if (!options?.auto) return;
     let isMounted = true;
-
     const playEpisodeMusic = async () => {
       if (isMounted && !audio.isLoading && episodeId) {
         try {
@@ -229,24 +225,20 @@ export function useEpisodeAudio(episodeId: string, audioManager?: AudioManager) 
         }
       }
     };
-
     playEpisodeMusic();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [episodeId, audio.isLoading, audio.playSceneBGM]);
+    return () => { isMounted = false; };
+  }, [episodeId, audio.isLoading, audio.playSceneBGM, options?.auto]);
 
   return audio;
 }
 
-export function useSceneAudio(sceneContext: { scene?: string; mood?: string; location?: string }, audioManager?: AudioManager) {
+export function useSceneAudio(sceneContext: { scene?: string; mood?: string; location?: string }, audioManager?: AudioManager, options?: { auto?: boolean }) {
   const audio = useAudio(audioManager);
 
-  // Auto-play scene-appropriate music when context changes
+  // Auto-play scene-appropriate music only when opted-in
   useEffect(() => {
+    if (!options?.auto) return;
     let isMounted = true;
-
     const playSceneMusic = async () => {
       if (isMounted && !audio.isLoading) {
         try {
@@ -256,13 +248,9 @@ export function useSceneAudio(sceneContext: { scene?: string; mood?: string; loc
         }
       }
     };
-
     playSceneMusic();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [audio.isLoading, audio.playSceneBGM, sceneContext]);
+    return () => { isMounted = false; };
+  }, [audio.isLoading, audio.playSceneBGM, sceneContext, options?.auto]);
 
   return audio;
 }
